@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Gallery</title>
-    
+  <title id="pageTitle">API Main Keyword Images</title>
+
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css">
     <style>
@@ -15,7 +15,8 @@
     </style>
 </head>
 <body>
- <title>Image Gallery</title>
+    <h1 id="galleryTitle">API Main Keyword Images</h1>
+
     <div class="gallery" id="imageGallery">
     <a href="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?crop=entropy&cs=srgb&fm=jpg&ixid=M3w1OTg4MjZ8MHwxfHNlYXJjaHwxfHxtb3VudGFpbnN8ZW58MHwwfHx8MTc0MjEzMDIzN3ww&ixlib=rb-4.0.3&q=85" data-lightbox="gallery">
         <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?crop=entropy&cs=srgb&fm=jpg&ixid=M3w1OTg4MjZ8MHwxfHNlYXJjaHwxfHxtb3VudGFpbnN8ZW58MHwwfHx8MTc0MjEzMDIzN3ww&ixlib=rb-4.0.3&q=85" alt="Unsplash Test">
@@ -30,8 +31,12 @@
         async function fetchImages() {
             const queryString = new URLSearchParams(window.location.search);
             const keyword = queryString.get('query') || 'nature';
+            document.getElementById("galleryTitle").textContent = `API Main Keyword Images: ${keyword}`;
+            document.getElementById("pageTitle").textContent = `API Images - ${keyword}`;
             const pixabayAPI = `https://pixabay-gpt.onrender.com/fetch_pixabay_images?query=${keyword}`;
             const unsplashAPI = `https://unsplash-gpt.onrender.com/fetch_unsplash_images?query=${keyword}`;
+            
+
 
             try {
                 const [pixabayResponse, unsplashResponse] = await Promise.all([
