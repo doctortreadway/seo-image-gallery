@@ -31,8 +31,13 @@
                 const unsplashData = await unsplashResponse.json();
                 
                 let images = [];
-                if (pixabayData.images) images = images.concat(pixabayData.images.map); // No .map() needed
-                if (unsplashData.images) images = images.concat(unsplashData.images.map); // No .map() needed
+                if (pixabayData.images) images = images.concat(pixabayData.images.map); 
+                if (unsplashData.images) images = images.concat(unsplashData.images.map); 
+
+                // 🔹 ADD THESE CONSOLE LOGS HERE 🔹
+        console.log("Pixabay Data:", pixabayData);
+        console.log("Unsplash Data:", unsplashData);
+        console.log("Final Images Array:", images);
                 
                 displayImages(images.slice(0, 12));
             } catch (error) {
@@ -56,8 +61,9 @@
         }
 
         function openEditor(imageUrl) {
-            window.open(`https://yourwebsite.com/editor?image=${encodeURIComponent(imageUrl)}`, '_blank');
-        }
+    window.open(`https://doctortreadway.github.io/seo-image-gallery/editor.html?image=${encodeURIComponent(imageUrl)}`, '_blank');
+}
+
 
         window.onload = fetchImages;
     </script>
