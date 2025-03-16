@@ -31,8 +31,8 @@
                 const unsplashData = await unsplashResponse.json();
                 
                 let images = [];
-                if (pixabayData.images) images = images.concat(pixabayData.images.map(img => img.url));
-                if (unsplashData.images) images = images.concat(unsplashData.images.map(img => img.url));
+                if (pixabayData.images) images = images.concat(pixabayData.images.map); // No .map() needed
+                if (unsplashData.images) images = images.concat(unsplashData.images.map); // No .map() needed
                 
                 displayImages(images.slice(0, 12));
             } catch (error) {
