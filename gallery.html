@@ -39,8 +39,9 @@
                 const unsplashData = await unsplashResponse.json();
                 
                 let images = [];
-                if (pixabayData.images) images = images.concat(pixabayData.images.map); 
-                if (unsplashData.images) images = images.concat(unsplashData.images.map); 
+                if (pixabayData.images) images = images.concat(pixabayData.images.map(img => img)); 
+                if (unsplashData.images) images = images.concat(unsplashData.images.map(img => img)); 
+
 
                 // 🔹 ADD THESE CONSOLE LOGS HERE 🔹
         console.log("Pixabay Data:", pixabayData);
