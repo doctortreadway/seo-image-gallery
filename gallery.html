@@ -20,8 +20,8 @@
         async function fetchImages() {
             const queryString = new URLSearchParams(window.location.search);
             const keyword = queryString.get('query') || 'nature';
-            const pixabayAPI = `https://your-pixabay-api.onrender.com/fetch_pixabay_images?query=${keyword}`;
-            const unsplashAPI = `https://your-unsplash-api.onrender.com/fetch_unsplash_images?query=${keyword}`;
+            const pixabayAPI = `https://pixabay-gpt.onrender.com/fetch_pixabay_images?query=${keyword}`;
+            const unsplashAPI = `https://unsplash-gpt.onrender.com/fetch_unsplash_images?query=${keyword}`;
 
             try {
                 const [pixabayResponse, unsplashResponse] = await Promise.all([
