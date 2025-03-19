@@ -11,7 +11,7 @@
         img { max-width: 100%; }
         canvas { display: none; }
         .btn-container { margin-top: 10px; }
-        button { padding: 8px 16px; margin: 5px; font-size: 16px; cursor: pointer; }
+        button, select { padding: 8px 16px; margin: 5px; font-size: 16px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -20,6 +20,26 @@
     <div class="container">
         <img id="image" src="" alt="Image to Edit">
         <canvas id="canvas"></canvas>
+    </div>
+
+    <!-- Aspect Ratio & Size Selection -->
+    <div class="btn-container">
+        <label for="aspectRatio">Aspect Ratio:</label>
+        <select id="aspectRatio">
+            <option value="NaN">Freeform</option>
+            <option value="16/9">Landscape (16:9)</option>
+            <option value="4/3">Standard (4:3)</option>
+            <option value="1">Square (1:1)</option>
+            <option value="3/4">Portrait (3:4)</option>
+        </select>
+
+        <label for="imageSize">Resize:</label>
+        <select id="imageSize">
+            <option value="original">Original</option>
+            <option value="800">Large (800px wide)</option>
+            <option value="500">Medium (500px wide)</option>
+            <option value="300">Small (300px wide)</option>
+        </select>
     </div>
 
     <div class="btn-container">
@@ -42,22 +62,42 @@
         let cropper;
         image.onload = function () {
             cropper = new Cropper(image, {
-                aspectRatio: NaN, // Free cropping (no fixed ratio)
+                aspectRatio: NaN, // Default to Freeform
                 viewMode: 1,
                 autoCropArea: 1,
             });
         };
 
-        // Crop Button Functionality
+        // Handle Aspect Ratio Change
+        document.getElementById('aspectRatio').addEventListener('change', function () {
+            const newRatio = parseFloat(this.value);
+            cropper.setAspectRatio(newRatio);
+        });
+
+        // Crop & Download
         document.getElementById('cropBtn').addEventListener('click', function () {
             const canvas = cropper.getCroppedCanvas();
             if (canvas) {
-                document.getElementById('canvas').replaceWith(canvas);
+                // Resize based on user selection
+                const sizeOption = document.getElementById('imageSize').value;
+                let width = canvas.width;
+                if (sizeOption !== "original") {
+                    width = parseInt(sizeOption);
+                }
+
+                const resizedCanvas = document.createElement('canvas');
+                const ctx = resizedCanvas.getContext('2d');
+                const scale = width / canvas.width;
+                resizedCanvas.width = width;
+                resizedCanvas.height = canvas.height * scale;
+                ctx.drawImage(canvas, 0, 0, resizedCanvas.width, resizedCanvas.height);
+
+                // Show Download Button
                 document.getElementById('downloadBtn').style.display = 'inline-block';
                 document.getElementById('downloadBtn').onclick = function () {
                     const link = document.createElement('a');
                     link.download = 'cropped-image.png';
-                    link.href = canvas.toDataURL('image/png');
+                    link.href = resizedCanvas.toDataURL('image/png');
                     link.click();
                 };
             }
