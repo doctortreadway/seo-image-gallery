@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .container { max-width: 80%; margin: auto; }
+        img { max-width: 100%; }
+        canvas { display: none; }
+        .btn-container { margin-top: 10px; }
+        button { padding: 8px 16px; margin: 5px; font-size: 16px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h1>Image Editor</h1>
+    <div class="container">
+        <img id="image" src="" alt="Image to Edit">
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <div class="btn-container">
+        <button id="cropBtn">Crop Image</button>
+        <button id="downloadBtn" style="display: none;">Download Image</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script>
+        // Get image URL from query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const imageUrl = urlParams.get('image');
+        const image = document.getElementById('image');
+
+        if (imageUrl) {
+            image.src = decodeURIComponent(imageUrl);
+        }
+
+        // Initialize Cropper.js
+        let cropper;
+        image.onload = function () {
+            cropper = new Cropper(image, {
+                aspectRatio: NaN, // Free cropping (no fixed ratio)
+                viewMode: 1,
+                autoCropArea: 1,
+            });
+        };
+
+        // Crop Button Functionality
+        document.getElementById('cropBtn').addEventListener('click', function () {
+            const canvas = cropper.getCroppedCanvas();
+            if (canvas) {
+                document.getElementById('canvas').replaceWith(canvas);
+                document.getElementById('downloadBtn').style.display = 'inline-block';
+                document.getElementById('downloadBtn').onclick = function () {
+                    const link = document.createElement('a');
+                    link.download = 'cropped-image.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                };
+            }
+        });
+    </script>
+
+</body>
+</html>
