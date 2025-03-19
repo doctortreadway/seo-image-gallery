@@ -11,13 +11,14 @@
         img { max-width: 100%; }
         canvas { display: none; }
         .btn-container { margin-top: 10px; }
-        button, select { padding: 8px 16px; margin: 5px; font-size: 16px; cursor: pointer; }
+        button, select, input { padding: 8px 16px; margin: 5px; font-size: 16px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <h1>Image Editor</h1>
     <div class="container">
+        <p><strong>Original Size:</strong> <span id="originalSize">Loading...</span></p>
         <img id="image" src="" alt="Image to Edit">
         <canvas id="canvas"></canvas>
     </div>
@@ -32,14 +33,17 @@
             <option value="1">Square (1:1)</option>
             <option value="3/4">Portrait (3:4)</option>
         </select>
+    </div>
 
-        <label for="imageSize">Resize:</label>
-        <select id="imageSize">
-            <option value="original">Original</option>
-            <option value="800">Large (800px wide)</option>
-            <option value="500">Medium (500px wide)</option>
-            <option value="300">Small (300px wide)</option>
-        </select>
+    <!-- Custom Width & Height Input Fields -->
+    <div class="btn-container">
+        <label for="customWidth">Custom Width:</label>
+        <input type="number" id="customWidth" placeholder="Enter width (px)">
+        
+        <label for="customHeight">Custom Height:</label>
+        <input type="number" id="customHeight" placeholder="Enter height (px)">
+        
+        <button id="applySizeBtn">Apply Size</button>
     </div>
 
     <div class="btn-container">
@@ -53,6 +57,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const imageUrl = urlParams.get('image');
         const image = document.getElementById('image');
+        const originalSizeDisplay = document.getElementById('originalSize');
 
         if (imageUrl) {
             image.src = decodeURIComponent(imageUrl);
@@ -61,6 +66,9 @@
         // Initialize Cropper.js
         let cropper;
         image.onload = function () {
+            // Display Original Image Size
+            originalSizeDisplay.textContent = `${image.naturalWidth} x ${image.naturalHeight} px`;
+
             cropper = new Cropper(image, {
                 aspectRatio: NaN, // Default to Freeform
                 viewMode: 1,
@@ -74,30 +82,28 @@
             cropper.setAspectRatio(newRatio);
         });
 
+        // Apply Custom Size
+        document.getElementById('applySizeBtn').addEventListener('click', function () {
+            const customWidth = parseInt(document.getElementById('customWidth').value);
+            const customHeight = parseInt(document.getElementById('customHeight').value);
+
+            if (customWidth > 0 && customHeight > 0) {
+                cropper.setCropBoxData({
+                    width: customWidth,
+                    height: customHeight
+                });
+            }
+        });
+
         // Crop & Download
         document.getElementById('cropBtn').addEventListener('click', function () {
             const canvas = cropper.getCroppedCanvas();
             if (canvas) {
-                // Resize based on user selection
-                const sizeOption = document.getElementById('imageSize').value;
-                let width = canvas.width;
-                if (sizeOption !== "original") {
-                    width = parseInt(sizeOption);
-                }
-
-                const resizedCanvas = document.createElement('canvas');
-                const ctx = resizedCanvas.getContext('2d');
-                const scale = width / canvas.width;
-                resizedCanvas.width = width;
-                resizedCanvas.height = canvas.height * scale;
-                ctx.drawImage(canvas, 0, 0, resizedCanvas.width, resizedCanvas.height);
-
-                // Show Download Button
                 document.getElementById('downloadBtn').style.display = 'inline-block';
                 document.getElementById('downloadBtn').onclick = function () {
                     const link = document.createElement('a');
                     link.download = 'cropped-image.png';
-                    link.href = resizedCanvas.toDataURL('image/png');
+                    link.href = canvas.toDataURL('image/png');
                     link.click();
                 };
             }
