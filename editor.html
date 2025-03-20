@@ -110,23 +110,27 @@
 
         // Crop, Resize & Download
         document.getElementById('cropBtn').addEventListener('click', function () {
-            const scaleFactor = parseFloat(document.getElementById('scaleFactor').value);
-            const canvas = cropper.getCroppedCanvas();
-            if (canvas) {
-                // Create a new canvas for upscaling
-                const newCanvas = document.createElement('canvas');
-                const ctx = newCanvas.getContext('2d');
-                newCanvas.width = canvas.width * scaleFactor;
-                newCanvas.height = canvas.height * scaleFactor;
-                ctx.drawImage(canvas, 0, 0, newCanvas.width, newCanvas.height);
+    const scaleFactor = parseFloat(document.getElementById('scaleFactor').value);
+    const canvas = cropper.getCroppedCanvas();
 
-                // Show Download Button
-                document.getElementById('downloadBtn').style.display = 'inline-block';
-                document.getElementById('downloadBtn').onclick = function () {
-                    const link = document.createElement('a');
-                    link.download = 'cropped-image.png';
-                    link.href = newCanvas.toDataURL('image/png');
-                    link.click();
+    if (canvas) {
+        const newCanvas = document.createElement('canvas');
+        newCanvas.width = canvas.width * scaleFactor;
+        newCanvas.height = canvas.height * scaleFactor;
+        newCanvas.getContext('2d').drawImage(canvas, 0, 0, newCanvas.width, newCanvas.height);
+
+        // Show Download Button
+        const downloadBtn = document.getElementById('downloadBtn');
+        downloadBtn.style.display = 'inline-block';
+        downloadBtn.onclick = function () {
+            const link = document.createElement('a');
+            link.download = 'edited-image.png';
+            link.href = newCanvas.toDataURL('image/png');
+            link.click();
+        };
+    }
+});
+
                 };
             }
         });
