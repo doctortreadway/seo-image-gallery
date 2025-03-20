@@ -106,7 +106,10 @@
 
         // Crop & Resize Functionality with Live Preview
         document.getElementById('cropBtn').addEventListener('click', function () {
-            const canvas = cropper.getCroppedCanvas();
+            const customWidth = parseInt(document.getElementById('customWidth').value) || image.naturalWidth;
+            const customHeight = parseInt(document.getElementById('customHeight').value) || image.naturalHeight;
+            const canvas = cropper.getCroppedCanvas({ width: customWidth, height: customHeight });
+            
             if (canvas) {
                 // Show the preview of the cropped image
                 previewImage.src = canvas.toDataURL('image/png');
