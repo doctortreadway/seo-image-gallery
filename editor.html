@@ -7,9 +7,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
-        .container { max-width: 80%; margin: auto; display: flex; flex-direction: column; align-items: center; }
-        .editor-container { width: 1920px; height: 1080px; overflow: hidden; display: flex; justify-content: center; align-items: center; position: relative; }
-        .editor-container img { max-width: 100%; max-height: 100%; display: block; object-fit: cover; }
+        .container { max-width: 100%; margin: auto; display: flex; flex-direction: column; align-items: center; }
+        .editor-container { width: auto; height: auto; overflow: hidden; display: flex; justify-content: center; align-items: center; position: relative; }
+        .editor-container img { width: auto; height: auto; max-width: 100%; max-height: 100vh; display: block; object-fit: contain; }
         canvas { display: none; }
         .btn-container { margin-top: 10px; }
         button, select, input { padding: 8px 16px; margin: 5px; font-size: 16px; cursor: pointer; }
@@ -20,10 +20,10 @@
 </head>
 <body>
 
-    <h1>HD Image Editor (1920 x 1080 Preview)</h1>
+    <h1>HD Image Editor (Dynamic Original Size)</h1>
     <div class="container">
         <p><strong>Original Size:</strong> <span id="originalSize">Loading...</span></p>
-        <div class="editor-container">
+        <div class="editor-container" id="editorContainer">
             <img id="image" src="" alt="Image to Edit">
         </div>
         <canvas id="canvas"></canvas>
@@ -46,7 +46,7 @@
     </div>
 
     <div class="preview-container">
-        <center><h2>Preview:</h2></center>
+        <h2>Preview:</h2>
         <img id="preview" style="display: none;">
     </div>
 
@@ -55,6 +55,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const imageUrl = urlParams.get('image');
         const image = document.getElementById('image');
+        const editorContainer = document.getElementById('editorContainer');
         const originalSizeDisplay = document.getElementById('originalSize');
         const previewImage = document.getElementById('preview');
 
@@ -68,12 +69,11 @@
             let originalHeight = image.naturalHeight;
 
             originalSizeDisplay.textContent = `${originalWidth} x ${originalHeight} px`;
-
-            // Scale image to fit within 1920x1080 container while keeping aspect ratio
-            let ratio = Math.min(1920 / originalWidth, 1080 / originalHeight);
-            image.style.width = `${originalWidth * ratio}px`;
-            image.style.height = `${originalHeight * ratio}px`;
-
+            
+            // Set editor container size to match image
+            editorContainer.style.width = `${originalWidth}px`;
+            editorContainer.style.height = `${originalHeight}px`;
+            
             cropper = new Cropper(image, {
                 aspectRatio: NaN,
                 viewMode: 1,
