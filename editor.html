@@ -46,10 +46,9 @@
     </div>
 
     <div class="preview-container">
-        <center><h2>Preview:</h2></center>
+        <h2>Preview:</h2>
         <img id="preview" style="display: none;">
     </div>
-    <br>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script>
@@ -110,6 +109,9 @@
             const customWidth = parseInt(document.getElementById('customWidth').value) || image.naturalWidth;
             const customHeight = parseInt(document.getElementById('customHeight').value) || image.naturalHeight;
             const canvas = cropper.getCroppedCanvas({ width: customWidth, height: customHeight });
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
             
             if (canvas) {
                 // Show the preview of the cropped image
