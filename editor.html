@@ -12,7 +12,6 @@
         canvas { display: none; }
         .btn-container { margin-top: 10px; }
         button, select, input { padding: 8px 16px; margin: 5px; font-size: 16px; cursor: pointer; }
-        input[type="range"] { width: 200px; }
     </style>
 </head>
 <body>
@@ -24,7 +23,7 @@
         <canvas id="canvas"></canvas>
     </div>
 
-    <!-- Aspect Ratio & Resize Options -->
+    <!-- Aspect Ratio & Size Selection -->
     <div class="btn-container">
         <label for="aspectRatio">Aspect Ratio:</label>
         <select id="aspectRatio">
@@ -36,7 +35,7 @@
         </select>
     </div>
 
-    <!-- Custom Resize Inputs -->
+    <!-- Custom Width & Height Input Fields -->
     <div class="btn-container">
         <label for="customWidth">Custom Width:</label>
         <input type="number" id="customWidth" placeholder="Enter width (px)">
@@ -47,15 +46,8 @@
         <button id="applySizeBtn">Apply Size</button>
     </div>
 
-    <!-- Scale Factor (Upscaling) -->
     <div class="btn-container">
-        <label for="scaleFactor">Resize Scale:</label>
-        <input type="range" id="scaleFactor" min="1" max="3" step="0.1" value="1">
-        <span id="scaleValue">1x</span>
-    </div>
-
-    <div class="btn-container">
-        <button id="cropBtn">Crop & Resize</button>
+        <button id="cropBtn">Crop Image</button>
         <button id="downloadBtn" style="display: none;">Download Image</button>
     </div>
 
@@ -103,34 +95,16 @@
             }
         });
 
-        // Scale Factor Change (Upscaling)
-        document.getElementById('scaleFactor').addEventListener('input', function () {
-            document.getElementById('scaleValue').textContent = `${this.value}x`;
-        });
-
-        // Crop, Resize & Download
+        // Crop & Download
         document.getElementById('cropBtn').addEventListener('click', function () {
-    const scaleFactor = parseFloat(document.getElementById('scaleFactor').value);
-    const canvas = cropper.getCroppedCanvas();
-
-    if (canvas) {
-        const newCanvas = document.createElement('canvas');
-        newCanvas.width = canvas.width * scaleFactor;
-        newCanvas.height = canvas.height * scaleFactor;
-        newCanvas.getContext('2d').drawImage(canvas, 0, 0, newCanvas.width, newCanvas.height);
-
-        // Show Download Button
-        const downloadBtn = document.getElementById('downloadBtn');
-        downloadBtn.style.display = 'inline-block';
-        downloadBtn.onclick = function () {
-            const link = document.createElement('a');
-            link.download = 'edited-image.png';
-            link.href = newCanvas.toDataURL('image/png');
-            link.click();
-        };
-    }
-});
-
+            const canvas = cropper.getCroppedCanvas();
+            if (canvas) {
+                document.getElementById('downloadBtn').style.display = 'inline-block';
+                document.getElementById('downloadBtn').onclick = function () {
+                    const link = document.createElement('a');
+                    link.download = 'cropped-image.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
                 };
             }
         });
