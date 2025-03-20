@@ -3,39 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Editor</title>
+    <title>HD Image Editor</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
-        .container { max-width: 80%; margin: auto; }
-        img { max-width: 100%; }
+        .container { max-width: 100%; margin: auto; display: flex; flex-direction: column; align-items: center; }
+        .editor-container { width: 1920px; height: 1080px; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        img { max-width: 100%; max-height: 100%; display: block; }
         canvas { display: none; }
         .btn-container { margin-top: 10px; }
         button, select, input { padding: 8px 16px; margin: 5px; font-size: 16px; cursor: pointer; }
+        input[type="number"] { width: 100px; }
     </style>
 </head>
 <body>
 
-    <h1>Image Editor</h1>
+    <h1>HD Image Editor (1920 x 1080 Preview)</h1>
     <div class="container">
         <p><strong>Original Size:</strong> <span id="originalSize">Loading...</span></p>
-        <img id="image" src="" alt="Image to Edit">
+        <div class="editor-container">
+            <img id="image" src="" alt="Image to Edit">
+        </div>
         <canvas id="canvas"></canvas>
     </div>
 
-    <!-- Aspect Ratio & Size Selection -->
-    <div class="btn-container">
-        <label for="aspectRatio">Aspect Ratio:</label>
-        <select id="aspectRatio">
-            <option value="NaN">Freeform</option>
-            <option value="16/9">Landscape (16:9)</option>
-            <option value="4/3">Standard (4:3)</option>
-            <option value="1">Square (1:1)</option>
-            <option value="3/4">Portrait (3:4)</option>
-        </select>
-    </div>
-
-    <!-- Custom Width & Height Input Fields -->
+    <!-- Custom Resize Inputs -->
     <div class="btn-container">
         <label for="customWidth">Custom Width:</label>
         <input type="number" id="customWidth" placeholder="Enter width (px)">
@@ -47,13 +39,12 @@
     </div>
 
     <div class="btn-container">
-        <button id="cropBtn">Crop Image</button>
+        <button id="cropBtn">Crop & Resize</button>
         <button id="downloadBtn" style="display: none;">Download Image</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script>
-        // Get image URL from query parameter
         const urlParams = new URLSearchParams(window.location.search);
         const imageUrl = urlParams.get('image');
         const image = document.getElementById('image');
@@ -63,24 +54,24 @@
             image.src = decodeURIComponent(imageUrl);
         }
 
-        // Initialize Cropper.js
         let cropper;
         image.onload = function () {
-            // Display Original Image Size
-            originalSizeDisplay.textContent = `${image.naturalWidth} x ${image.naturalHeight} px`;
+            let originalWidth = image.naturalWidth;
+            let originalHeight = image.naturalHeight;
+
+            originalSizeDisplay.textContent = `${originalWidth} x ${originalHeight} px`;
+
+            // Scale image to fit within 1920x1080 container while keeping aspect ratio
+            let ratio = Math.min(1920 / originalWidth, 1080 / originalHeight);
+            image.style.width = `${originalWidth * ratio}px`;
+            image.style.height = `${originalHeight * ratio}px`;
 
             cropper = new Cropper(image, {
-                aspectRatio: NaN, // Default to Freeform
+                aspectRatio: NaN,
                 viewMode: 1,
                 autoCropArea: 1,
             });
         };
-
-        // Handle Aspect Ratio Change
-        document.getElementById('aspectRatio').addEventListener('change', function () {
-            const newRatio = parseFloat(this.value);
-            cropper.setAspectRatio(newRatio);
-        });
 
         // Apply Custom Size
         document.getElementById('applySizeBtn').addEventListener('click', function () {
@@ -95,7 +86,7 @@
             }
         });
 
-        // Crop & Download
+        // Crop & Resize Functionality
         document.getElementById('cropBtn').addEventListener('click', function () {
             const canvas = cropper.getCroppedCanvas();
             if (canvas) {
@@ -109,6 +100,5 @@
             }
         });
     </script>
-
 </body>
 </html>
