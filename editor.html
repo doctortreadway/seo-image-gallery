@@ -14,6 +14,7 @@
         .btn-container { margin-top: 10px; }
         button, select, input { padding: 8px 16px; margin: 5px; font-size: 16px; cursor: pointer; }
         input[type="number"] { width: 100px; }
+        .preview-container { margin-top: 20px; display: flex; justify-content: center; }
     </style>
 </head>
 <body>
@@ -43,12 +44,18 @@
         <button id="downloadBtn" style="display: none;">Download Image</button>
     </div>
 
+    <div class="preview-container">
+        <h2>Preview:</h2>
+        <img id="preview" style="max-width: 100%; display: none;">
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const imageUrl = urlParams.get('image');
         const image = document.getElementById('image');
         const originalSizeDisplay = document.getElementById('originalSize');
+        const previewImage = document.getElementById('preview');
 
         if (imageUrl) {
             image.src = decodeURIComponent(imageUrl);
@@ -86,10 +93,15 @@
             }
         });
 
-        // Crop & Resize Functionality
+        // Crop & Resize Functionality with Live Preview
         document.getElementById('cropBtn').addEventListener('click', function () {
             const canvas = cropper.getCroppedCanvas();
             if (canvas) {
+                // Show the preview of the cropped image
+                previewImage.src = canvas.toDataURL('image/png');
+                previewImage.style.display = 'block';
+                
+                // Enable Download Button
                 document.getElementById('downloadBtn').style.display = 'inline-block';
                 document.getElementById('downloadBtn').onclick = function () {
                     const link = document.createElement('a');
