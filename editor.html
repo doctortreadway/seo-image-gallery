@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HD Image Editor</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/upscaler@1.8.0/dist/upscaler.min.js"></script>
+    <script type="module">
+  import Upscaler from 'https://cdn.jsdelivr.net/npm/upscaler@1.8.0/+esm';
+  window.Upscaler = Upscaler;
+</script>
+
+
     <style>
         body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 0; }
         .container { max-width: 100%; margin: auto; display: flex; flex-direction: column; align-items: center; padding: 10px; }
