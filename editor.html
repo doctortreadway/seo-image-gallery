@@ -132,48 +132,64 @@
         };
 
         document.querySelectorAll('.upscaleBtn').forEach(button => {
-            button.addEventListener('click', async () => {
-                const scale = parseInt(button.dataset.scale);
-                const croppedCanvas = cropper.getCroppedCanvas({ maxWidth: 960, maxHeight: 540 });
-                const width = croppedCanvas.width * scale;
-                const height = croppedCanvas.height * scale;
+    button.addEventListener('click', async () => {
+        const scale = parseInt(button.dataset.scale);
 
-                if (width > 1920 || height > 1080) {
-                    alert(`Upscaled size exceeds 1920x1080 (attempted: ${width}x${height}). Please resize or crop smaller.`);
+        // Get cropped area from cropper
+        const cropData = cropper.getData();
+
+        // Create safe canvas
+        const safeCanvas = document.createElement('canvas');
+        safeCanvas.width = 960;
+        safeCanvas.height = 540;
+        const ctx = safeCanvas.getContext('2d');
+
+        // Draw image onto canvas at forced resolution
+        ctx.drawImage(
+            image,
+            cropData.x, cropData.y, cropData.width, cropData.height,
+            0, 0, 960, 540
+        );
+
+        // Optional: show debug size
+        console.log("🧪 Safe canvas input for upscaler: 960x540");
+
+        const base64 = safeCanvas.toDataURL('image/png');
+        const tempImg = new Image();
+        tempImg.onload = async () => {
+            try {
+                const upscaler = new window.Upscaler({ model: window.DefaultUpscalerJSModel });
+
+                // Still do a WebGL safety check
+                const gl = document.createElement('canvas').getContext('webgl');
+                const maxTexSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+                const upscaleWidth = 960 * scale;
+                const upscaleHeight = 540 * scale;
+
+                if (upscaleWidth > maxTexSize || upscaleHeight > maxTexSize) {
+                    alert(`Upscaled size (${upscaleWidth}x${upscaleHeight}) exceeds WebGL limit of ${maxTexSize}px.`);
                     return;
                 }
 
-                const base64 = croppedCanvas.toDataURL('image/png');
-                const tempImg = new Image();
-                tempImg.onload = async () => {
-                    try {
-                        const upscaler = new window.Upscaler({ model: window.DefaultUpscalerJSModel });
-
-                        // Add WebGL texture size safety check
-                        const gl = document.createElement('canvas').getContext('webgl');
-                        const maxTexSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
-                        if (width > maxTexSize || height > maxTexSize) {
-                            alert(`Upscale dimensions (${width}x${height}) exceed your browser's WebGL limit (${maxTexSize}px).`);
-                            return;
-                        }
-
-                        const upscaledBase64 = await upscaler.upscale(tempImg, {
-                            scale,
-                            output: 'base64'
-                        });
-                        upscaledImg = new Image();
-                        upscaledImg.onload = () => {
-                            previewImage.src = upscaledImg.src;
-                            previewImage.style.display = 'block';
-                            hasUpscaled = true;
-                        };
-                        upscaledImg.src = upscaledBase64;
-                    } catch (error) {
-                        console.error("Upscaling failed:", error);
-                        alert("There was an issue upscaling the image. Try a smaller image or lower scale.");
-                    }
+                const upscaledBase64 = await upscaler.upscale(tempImg, {
+                    scale,
+                    output: 'base64'
+                });
+                upscaledImg = new Image();
+                upscaledImg.onload = () => {
+                    previewImage.src = upscaledImg.src;
+                    previewImage.style.display = 'block';
+                    hasUpscaled = true;
                 };
-                tempImg.src = base64;
+                upscaledImg.src = upscaledBase64;
+            } catch (error) {
+                console.error("Upscaling failed:", error);
+                alert("There was an issue upscaling the image. Try a smaller image or lower scale.");
+            }
+        };
+        tempImg.src = base64;
+    });
+});
             });
         });
 
@@ -207,7 +223,6 @@
     </script>
 </body>
 </html>
-
 
 
 
