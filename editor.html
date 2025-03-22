@@ -134,7 +134,7 @@
         document.querySelectorAll('.upscaleBtn').forEach(button => {
             button.addEventListener('click', async () => {
                 const scale = parseInt(button.dataset.scale);
-                const croppedCanvas = cropper.getCroppedCanvas();
+                const croppedCanvas = cropper.getCroppedCanvas({ maxWidth: 960, maxHeight: 540 });
                 const width = croppedCanvas.width * scale;
                 const height = croppedCanvas.height * scale;
 
@@ -207,6 +207,7 @@
     </script>
 </body>
 </html>
+
 
 
 
