@@ -1,114 +1,55 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Editor</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <title>Image Gallery</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        .container { max-width: 80%; margin: auto; }
-        img { max-width: 100%; }
-        canvas { display: none; }
-        .btn-container { margin-top: 10px; }
-        button, select, input { padding: 8px 16px; margin: 5px; font-size: 16px; cursor: pointer; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; text-align: center; background-color: #f9f9f9; }
+        h1 { margin-top: 20px; }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; padding: 20px; max-width: 1200px; margin: auto; }
+        .gallery img { width: 100%; height: auto; cursor: pointer; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: transform 0.2s; }
+        .gallery img:hover { transform: scale(1.05); }
     </style>
 </head>
 <body>
+    <h1>Image Gallery</h1>
+    <div class="gallery" id="gallery"></div>
 
-    <h1>Image Editor</h1>
-    <div class="container">
-        <p><strong>Original Size:</strong> <span id="originalSize">Loading...</span></p>
-        <img id="image" src="" alt="Image to Edit">
-        <canvas id="canvas"></canvas>
-    </div>
-
-    <!-- Aspect Ratio & Size Selection -->
-    <div class="btn-container">
-        <label for="aspectRatio">Aspect Ratio:</label>
-        <select id="aspectRatio">
-            <option value="NaN">Freeform</option>
-            <option value="16/9">Landscape (16:9)</option>
-            <option value="4/3">Standard (4:3)</option>
-            <option value="1">Square (1:1)</option>
-            <option value="3/4">Portrait (3:4)</option>
-        </select>
-    </div>
-
-    <!-- Custom Width & Height Input Fields -->
-    <div class="btn-container">
-        <label for="customWidth">Custom Width:</label>
-        <input type="number" id="customWidth" placeholder="Enter width (px)">
-        
-        <label for="customHeight">Custom Height:</label>
-        <input type="number" id="customHeight" placeholder="Enter height (px)">
-        
-        <button id="applySizeBtn">Apply Size</button>
-    </div>
-
-    <div class="btn-container">
-        <button id="cropBtn">Crop Image</button>
-        <button id="downloadBtn" style="display: none;">Download Image</button>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script>
-        // Get image URL from query parameter
         const urlParams = new URLSearchParams(window.location.search);
-        const imageUrl = urlParams.get('image');
-        const image = document.getElementById('image');
-        const originalSizeDisplay = document.getElementById('originalSize');
+        const keyword = urlParams.get('keyword');
 
-        if (imageUrl) {
-            image.src = decodeURIComponent(imageUrl);
+        async function fetchImages(keyword) {
+            const response = await fetch(`/api/images?query=${encodeURIComponent(keyword)}`);
+            const data = await response.json();
+            return data.hits;
         }
 
-        // Initialize Cropper.js
-        let cropper;
-        image.onload = function () {
-            // Display Original Image Size
-            originalSizeDisplay.textContent = `${image.naturalWidth} x ${image.naturalHeight} px`;
+        function displayImages(images) {
+            const gallery = document.getElementById('gallery');
+            gallery.innerHTML = '';
 
-            cropper = new Cropper(image, {
-                aspectRatio: NaN, // Default to Freeform
-                viewMode: 1,
-                autoCropArea: 1,
-            });
-        };
-
-        // Handle Aspect Ratio Change
-        document.getElementById('aspectRatio').addEventListener('change', function () {
-            const newRatio = parseFloat(this.value);
-            cropper.setAspectRatio(newRatio);
-        });
-
-        // Apply Custom Size
-        document.getElementById('applySizeBtn').addEventListener('click', function () {
-            const customWidth = parseInt(document.getElementById('customWidth').value);
-            const customHeight = parseInt(document.getElementById('customHeight').value);
-
-            if (customWidth > 0 && customHeight > 0) {
-                cropper.setCropBoxData({
-                    width: customWidth,
-                    height: customHeight
-                });
-            }
-        });
-
-        // Crop & Download
-        document.getElementById('cropBtn').addEventListener('click', function () {
-            const canvas = cropper.getCroppedCanvas();
-            if (canvas) {
-                document.getElementById('downloadBtn').style.display = 'inline-block';
-                document.getElementById('downloadBtn').onclick = function () {
-                    const link = document.createElement('a');
-                    link.download = 'cropped-image.png';
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
+            images.forEach(image => {
+                const img = document.createElement('img');
+                img.src = image.webformatURL;
+                img.alt = image.tags;
+                img.onclick = () => {
+                    window.location.href = `editor.html?image=${encodeURIComponent(image.largeImageURL)}`;
                 };
-            }
-        });
-    </script>
+                gallery.appendChild(img);
+            });
+        }
 
+        if (keyword) {
+            fetchImages(keyword).then(displayImages).catch(err => {
+                document.getElementById('gallery').innerHTML = '<p>Error loading images.</p>';
+                console.error(err);
+            });
+        } else {
+            document.getElementById('gallery').innerHTML = '<p>No keyword provided.</p>';
+        }
+    </script>
 </body>
 </html>
