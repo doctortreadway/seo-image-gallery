@@ -118,30 +118,21 @@
                 ctx.imageSmoothingQuality = 'high';
                 ctx.drawImage(croppedCanvas, 0, 0, inputWidth, inputHeight);
 
-                const resizedImageBase64 = resizedCanvas.toDataURL('image/png');
-                const imgForUpscale = new Image();
+                // Show preview directly from resized canvas (skip upscaler if not needed)
+                const previewDataURL = resizedCanvas.toDataURL('image/png');
+                previewImage.src = previewDataURL;
+                previewImage.style.display = 'block';
 
-                imgForUpscale.onload = async () => {
-                    const upscaler = new Upscaler();
-                    const upscaledBase64 = await upscaler.upscale(imgForUpscale, {
-                        scale: 1, // Already resized
-                        output: 'base64'
-                    });
-
-                    previewImage.src = upscaledBase64;
-                    previewImage.style.display = 'block';
-
-                    document.getElementById('downloadBtn').style.display = 'inline-block';
-                    document.getElementById('downloadBtn').onclick = function () {
-                        const link = document.createElement('a');
-                        link.download = 'cropped-image.png';
-                        link.href = upscaledBase64;
-                        link.click();
-                    };
+                document.getElementById('downloadBtn').style.display = 'inline-block';
+                document.getElementById('downloadBtn').onclick = function () {
+                    const link = document.createElement('a');
+                    link.download = 'cropped-image.png';
+                    link.href = previewDataURL;
+                    link.click();
                 };
-                imgForUpscale.src = resizedImageBase64;
             }
         });
     </script>
 </body>
 </html>
+
