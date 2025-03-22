@@ -3,104 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title id="pageTitle">API Main Keyword Images</title>
-
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css">
-<style>
-    body { font-family: Arial, sans-serif; text-align: center; }
-
-    .gallery {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Responsive grid */
-        gap: 10px;
-        justify-items: center;
-        max-width: 90%;
-        margin: auto;
-    }
-
-    .gallery img {
-        width: 100%;
-        max-width: 300px;
-        height: auto;
-        border-radius: 5px;
-        transition: transform 0.2s ease-in-out;
-    }
-
-    .gallery img:hover {
-        transform: scale(1.05);
-    }
-
-    .edit-btn {
-        display: block;
-        margin-top: 5px;
-    }
-</style>
-
+    <title>Image Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .container { max-width: 80%; margin: auto; }
+        img { max-width: 100%; }
+        canvas { display: none; }
+        .btn-container { margin-top: 10px; }
+        button, select, input { padding: 8px 16px; margin: 5px; font-size: 16px; cursor: pointer; }
+    </style>
 </head>
 <body>
-    <h1 id="galleryTitle">API Main Keyword Images</h1>
 
-    <div class="gallery" id="imageGallery">
-</div>
+    <h1>Image Editor</h1>
+    <div class="container">
+        <p><strong>Original Size:</strong> <span id="originalSize">Loading...</span></p>
+        <img id="image" src="" alt="Image to Edit">
+        <canvas id="canvas"></canvas>
+    </div>
 
+    <!-- Aspect Ratio & Size Selection -->
+    <div class="btn-container">
+        <label for="aspectRatio">Aspect Ratio:</label>
+        <select id="aspectRatio">
+            <option value="NaN">Freeform</option>
+            <option value="16/9">Landscape (16:9)</option>
+            <option value="4/3">Standard (4:3)</option>
+            <option value="1">Square (1:1)</option>
+            <option value="3/4">Portrait (3:4)</option>
+        </select>
+    </div>
 
-<script>
-        async function fetchImages() {
-            const queryString = new URLSearchParams(window.location.search);
-            const keyword = queryString.get('query') || 'nature';
-            document.getElementById("galleryTitle").textContent = `API Main Keyword Images: ${keyword}`;
-            document.getElementById("pageTitle").textContent = `API Images - ${keyword}`;
-            const pixabayAPI = `https://pixabay-gpt.onrender.com/fetch_pixabay_images?query=${keyword}`;
-            const unsplashAPI = `https://unsplash-gpt.onrender.com/fetch_unsplash_images?query=${keyword}`;
-            
+    <!-- Custom Width & Height Input Fields -->
+    <div class="btn-container">
+        <label for="customWidth">Custom Width:</label>
+        <input type="number" id="customWidth" placeholder="Enter width (px)">
+        
+        <label for="customHeight">Custom Height:</label>
+        <input type="number" id="customHeight" placeholder="Enter height (px)">
+        
+        <button id="applySizeBtn">Apply Size</button>
+    </div>
 
+    <div class="btn-container">
+        <button id="cropBtn">Crop Image</button>
+        <button id="downloadBtn" style="display: none;">Download Image</button>
+    </div>
 
-            try {
-                const [pixabayResponse, unsplashResponse] = await Promise.all([
-                    fetch(pixabayAPI), fetch(unsplashAPI)
-                ]);
-                const pixabayData = await pixabayResponse.json();
-                const unsplashData = await unsplashResponse.json();
-                
-                let images = [];
-                if (pixabayData.images) images = images.concat(pixabayData.images.map(img => img)); 
-                if (unsplashData.images) images = images.concat(unsplashData.images.map(img => img)); 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script>
+        // Get image URL from query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const imageUrl = urlParams.get('image');
+        const image = document.getElementById('image');
+        const originalSizeDisplay = document.getElementById('originalSize');
 
-
-                // 🔹 ADD THESE CONSOLE LOGS HERE 🔹
-        console.log("Pixabay Data:", pixabayData);
-        console.log("Unsplash Data:", unsplashData);
-        console.log("Final Images Array:", images);
-                
-                displayImages(images.slice(0, 12));
-            } catch (error) {
-                console.error('Error fetching images:', error);
-            }
+        if (imageUrl) {
+            image.src = decodeURIComponent(imageUrl);
         }
 
-        function displayImages(images) {
-            const gallery = document.getElementById('imageGallery');
-            gallery.innerHTML = '';
-            images.forEach((imgSrc, index) => {
-                const imgContainer = document.createElement('div');
-                imgContainer.innerHTML = `
-                    <a href="${imgSrc}" data-lightbox="gallery">
-                        <img src="${imgSrc}" alt="Image ${index + 1}">
-                    </a>
-                    <button class="edit-btn" onclick="openEditor('${imgSrc}')">Edit</button>
-                `;
-                gallery.appendChild(imgContainer);
+        // Initialize Cropper.js
+        let cropper;
+        image.onload = function () {
+            // Display Original Image Size
+            originalSizeDisplay.textContent = `${image.naturalWidth} x ${image.naturalHeight} px`;
+
+            cropper = new Cropper(image, {
+                aspectRatio: NaN, // Default to Freeform
+                viewMode: 1,
+                autoCropArea: 1,
             });
-        }
+        };
 
-        function openEditor(imageUrl) {
-    window.open(`https://doctortreadway.github.io/seo-image-gallery/editor.html?image=${encodeURIComponent(imageUrl)}`, '_blank');
-}
+        // Handle Aspect Ratio Change
+        document.getElementById('aspectRatio').addEventListener('change', function () {
+            const newRatio = parseFloat(this.value);
+            cropper.setAspectRatio(newRatio);
+        });
 
+        // Apply Custom Size
+        document.getElementById('applySizeBtn').addEventListener('click', function () {
+            const customWidth = parseInt(document.getElementById('customWidth').value);
+            const customHeight = parseInt(document.getElementById('customHeight').value);
 
-        window.onload = fetchImages;
+            if (customWidth > 0 && customHeight > 0) {
+                cropper.setCropBoxData({
+                    width: customWidth,
+                    height: customHeight
+                });
+            }
+        });
+
+        // Crop & Download
+        document.getElementById('cropBtn').addEventListener('click', function () {
+            const canvas = cropper.getCroppedCanvas();
+            if (canvas) {
+                document.getElementById('downloadBtn').style.display = 'inline-block';
+                document.getElementById('downloadBtn').onclick = function () {
+                    const link = document.createElement('a');
+                    link.download = 'cropped-image.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                };
+            }
+        });
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox-plus-jquery.min.js"></script>
+
 </body>
 </html>
