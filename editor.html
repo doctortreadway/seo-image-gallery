@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HD Image Editor</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/upscaler@1.8.0/dist/upscaler.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
         .container { max-width: 100%; margin: auto; display: flex; flex-direction: column; align-items: center; }
@@ -20,7 +21,7 @@
 </head>
 <body>
 
-    <h1>HD Image Editor (Responsive Preview)</h1>
+    <h1>HD Image Editor (Responsive Preview with AI Upscaling)</h1>
     <div class="container">
         <p><strong>Original Size:</strong> <span id="originalSize">Loading...</span></p>
         <div class="editor-container" id="editorContainer">
@@ -104,28 +105,32 @@
             }
         });
 
-        // Crop & Resize Functionality with Live Preview
-        document.getElementById('cropBtn').addEventListener('click', function () {
+        // Crop & Resize with AI Upscaler
+        document.getElementById('cropBtn').addEventListener('click', async function () {
             const customWidth = parseInt(document.getElementById('customWidth').value) || image.naturalWidth;
             const customHeight = parseInt(document.getElementById('customHeight').value) || image.naturalHeight;
-            const canvas = cropper.getCroppedCanvas({ width: customWidth, height: customHeight });
-            const ctx = canvas.getContext('2d');
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            
+            const canvas = cropper.getCroppedCanvas();
+
             if (canvas) {
-                // Show the preview of the cropped image
-                previewImage.src = canvas.toDataURL('image/png');
-                previewImage.style.display = 'block';
-                previewImage.style.maxWidth = '100%';
-                previewImage.style.objectFit = 'contain';
-                
-                // Enable Download Button
-                document.getElementById('downloadBtn').style.display = 'inline-block';
-                document.getElementById('downloadBtn').onclick = function () {
-                    const link = document.createElement('a');
-                    link.download = 'cropped-image.png';
-                    link.href = canvas.toDataURL('image/png');
+                const upscaler = new Upscaler();
+                const upscaledCanvas = await upscaler.upscale(canvas, {
+                    patchSize: 64,
+                    padding: 2,
+                    output: "canvas",
+                    width: customWidth,
+                    height: customHeight,
+                });
+
+                previewImage.src = upscaledCanvas.toDataURL("image/png");
+                previewImage.style.display = "block";
+                previewImage.style.maxWidth = "100%";
+                previewImage.style.objectFit = "contain";
+
+                document.getElementById("downloadBtn").style.display = "inline-block";
+                document.getElementById("downloadBtn").onclick = function () {
+                    const link = document.createElement("a");
+                    link.download = "cropped-image.png";
+                    link.href = upscaledCanvas.toDataURL("image/png");
                     link.click();
                 };
             }
