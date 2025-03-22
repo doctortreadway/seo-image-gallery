@@ -45,9 +45,10 @@
         <button id="cropBtn">Crop & Resize</button>
         <button id="downloadBtn" style="display: none;">Download Image</button>
     </div>
-    <cener><div class="preview-container">
+
+    <div class="preview-container">
         <h2>Preview:</h2>
-        <img id="preview" style="display: none;"></cener>
+        <img id="preview" style="display: none;">
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
@@ -106,30 +107,32 @@
 
         // Crop & Resize with AI Upscaler
         document.getElementById('cropBtn').addEventListener('click', async function () {
-            const customWidth = parseInt(document.getElementById('customWidth').value) || image.naturalWidth;
-            const customHeight = parseInt(document.getElementById('customHeight').value) || image.naturalHeight;
-            const canvas = cropper.getCroppedCanvas();
+            const inputWidth = parseInt(document.getElementById('customWidth').value);
+            const inputHeight = parseInt(document.getElementById('customHeight').value);
 
-            if (canvas) {
+            const baseCanvas = cropper.getCroppedCanvas();
+
+            if (baseCanvas && inputWidth > 0 && inputHeight > 0) {
+                const scaleX = inputWidth / baseCanvas.width;
+                const scaleY = inputHeight / baseCanvas.height;
+                const scale = Math.min(scaleX, scaleY); // Maintain aspect ratio
+
                 const upscaler = new Upscaler();
-                const upscaledCanvas = await upscaler.upscale(canvas, {
-                    patchSize: 64,
-                    padding: 2,
-                    output: "canvas",
-                    width: customWidth,
-                    height: customHeight,
+                const upscaledCanvas = await upscaler.upscale(baseCanvas, {
+                    scale,
+                    output: 'canvas',
                 });
 
-                previewImage.src = upscaledCanvas.toDataURL("image/png");
-                previewImage.style.display = "block";
-                previewImage.style.maxWidth = "100%";
-                previewImage.style.objectFit = "contain";
+                previewImage.src = upscaledCanvas.toDataURL('image/png');
+                previewImage.style.display = 'block';
+                previewImage.style.maxWidth = '100%';
+                previewImage.style.objectFit = 'contain';
 
-                document.getElementById("downloadBtn").style.display = "inline-block";
-                document.getElementById("downloadBtn").onclick = function () {
-                    const link = document.createElement("a");
-                    link.download = "cropped-image.png";
-                    link.href = upscaledCanvas.toDataURL("image/png");
+                document.getElementById('downloadBtn').style.display = 'inline-block';
+                document.getElementById('downloadBtn').onclick = function () {
+                    const link = document.createElement('a');
+                    link.download = 'cropped-image.png';
+                    link.href = upscaledCanvas.toDataURL('image/png');
                     link.click();
                 };
             }
