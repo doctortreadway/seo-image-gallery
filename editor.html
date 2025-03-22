@@ -70,7 +70,10 @@
     </div>
 
     <!-- Manual 2x / 3x Upscale Buttons -->
-   <script src="https://cdn.jsdelivr.net/npm/upscaler@0.4.0/dist/upscaler.min.js"></script>
+   <script type="module">
+  import Upscaler from './upscaler.js';
+  window.Upscaler = Upscaler;
+</script>
 
     <div class="btn-container">
         <button class="upscaleBtn" data-scale="2">Apply 2× Upscale</button>
