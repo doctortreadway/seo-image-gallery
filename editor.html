@@ -7,16 +7,49 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <script src="https://cdn.jsdelivr.net/npm/upscaler@1.8.0/dist/upscaler.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        .container { max-width: 100%; margin: auto; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 0; }
+        .container { max-width: 100%; margin: auto; display: flex; flex-direction: column; align-items: center; padding: 10px; }
         .editor-container { width: 100%; max-width: 1920px; height: auto; max-height: 1080px; overflow: hidden; display: flex; justify-content: center; align-items: center; position: relative; }
         .editor-container img { width: auto; height: auto; max-width: 100%; max-height: 100%; display: block; object-fit: contain; }
         canvas { display: none; }
-        .btn-container { margin-top: 10px; flex-wrap: wrap; justify-content: center; display: flex; flex-direction: row; }
-        button, select, input { padding: 8px 16px; margin: 5px; font-size: 16px; cursor: pointer; }
+        .btn-container { margin-top: 10px; flex-wrap: wrap; justify-content: center; display: flex; flex-direction: row; flex-wrap: wrap; }
+        button, select, input { padding: 8px 16px; margin: 5px; font-size: 16px; cursor: pointer; max-width: 90vw; }
         input[type="number"] { width: 100px; }
-        .preview-container { margin-top: 20px; display: flex; flex-direction: column; align-items: center; overflow: hidden; }
-        .preview-container img { max-width: 100%; display: block; object-fit: contain; border: 1px solid #ccc; margin-top: 10px; }
+
+        .preview-container {
+            margin-top: 40px;
+            padding: 20px;
+            border: 2px dashed #ccc;
+            background-color: #f9f9f9;
+            width: 95%;
+            max-width: 1000px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .preview-container h2 {
+            margin-bottom: 10px;
+            font-size: 18px;
+            color: #333;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .preview-container img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: white;
+        }
+
+        @media (max-width: 600px) {
+            button, input[type="number"] { width: 90%; font-size: 14px; }
+            .btn-container { flex-direction: column; align-items: center; }
+        }
     </style>
 </head>
 <body>
@@ -104,7 +137,6 @@
                 const croppedCanvas = cropper.getCroppedCanvas();
                 const base64 = croppedCanvas.toDataURL('image/png');
                 const tempImg = new Image();
-                tempImg.src = base64;
                 tempImg.onload = async () => {
                     const upscaler = new Upscaler();
                     const upscaledBase64 = await upscaler.upscale(tempImg, {
@@ -112,13 +144,14 @@
                         output: 'base64'
                     });
                     upscaledImg = new Image();
-                    upscaledImg.src = upscaledBase64;
                     upscaledImg.onload = () => {
-                        previewImage.src = upscaledBase64;
+                        previewImage.src = upscaledImg.src;
                         previewImage.style.display = 'block';
                         hasUpscaled = true;
                     };
+                    upscaledImg.src = upscaledBase64;
                 };
+                tempImg.src = base64;
             });
         });
 
@@ -152,3 +185,4 @@
     </script>
 </body>
 </html>
+
