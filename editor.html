@@ -5,13 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HD Image Editor</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
-    
-    <script type="module">
-    import Upscaler from './upscaler.js';
-    window.Upscaler = Upscaler;
-    </script>
-
-
 
     <style>
         body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 0; }
@@ -77,6 +70,11 @@
     </div>
 
     <!-- Manual 2x / 3x Upscale Buttons -->
+    <script type="module">
+    import Upscaler from './upscaler.js';
+    window.Upscaler = Upscaler;
+    </script>
+    
     <div class="btn-container">
         <button class="upscaleBtn" data-scale="2">Apply 2× Upscale</button>
         <button class="upscaleBtn" data-scale="3">Apply 3× Upscale</button>
