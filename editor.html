@@ -135,11 +135,28 @@
             button.addEventListener('click', async () => {
                 const scale = parseInt(button.dataset.scale);
                 const croppedCanvas = cropper.getCroppedCanvas();
+                const width = croppedCanvas.width * scale;
+                const height = croppedCanvas.height * scale;
+
+                if (width > 1920 || height > 1080) {
+                    alert(`Upscaled size exceeds 1920x1080 (attempted: ${width}x${height}). Please resize or crop smaller.`);
+                    return;
+                }
+
                 const base64 = croppedCanvas.toDataURL('image/png');
                 const tempImg = new Image();
                 tempImg.onload = async () => {
                     try {
                         const upscaler = new Upscaler({ model: DefaultUpscalerJSModel });
+
+                        // Add WebGL texture size safety check
+                        const gl = document.createElement('canvas').getContext('webgl');
+                        const maxTexSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+                        if (width > maxTexSize || height > maxTexSize) {
+                            alert(`Upscale dimensions (${width}x${height}) exceed your browser's WebGL limit (${maxTexSize}px).`);
+                            return;
+                        }
+
                         const upscaledBase64 = await upscaler.upscale(tempImg, {
                             scale,
                             output: 'base64'
