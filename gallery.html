@@ -1,55 +1,82 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Gallery</title>
+  <title id="pageTitle">API Main Keyword Images</title>
+
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css">
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; text-align: center; background-color: #f9f9f9; }
-        h1 { margin-top: 20px; }
-        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; padding: 20px; max-width: 1200px; margin: auto; }
-        .gallery img { width: 100%; height: auto; cursor: pointer; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: transform 0.2s; }
-        .gallery img:hover { transform: scale(1.05); }
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .gallery { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        .gallery img { width: 200px; height: auto; cursor: pointer; border-radius: 5px; }
+        .edit-btn { display: block; margin-top: 5px; }
     </style>
 </head>
 <body>
-    <h1>Image Gallery</h1>
-    <div class="gallery" id="gallery"></div>
+    <h1 id="galleryTitle">API Main Keyword Images</h1>
 
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const keyword = urlParams.get('keyword');
+    <div class="gallery" id="imageGallery">
+</div>
 
-        async function fetchImages(keyword) {
-            const response = await fetch(`/api/images?query=${encodeURIComponent(keyword)}`);
-            const data = await response.json();
-            return data.hits;
+
+<script>
+        async function fetchImages() {
+            const queryString = new URLSearchParams(window.location.search);
+            const keyword = queryString.get('query') || 'nature';
+            document.getElementById("galleryTitle").textContent = `API Main Keyword Images: ${keyword}`;
+            document.getElementById("pageTitle").textContent = `API Images - ${keyword}`;
+            const pixabayAPI = `https://pixabay-gpt.onrender.com/fetch_pixabay_images?query=${keyword}`;
+            const unsplashAPI = `https://unsplash-gpt.onrender.com/fetch_unsplash_images?query=${keyword}`;
+            
+
+
+            try {
+                const [pixabayResponse, unsplashResponse] = await Promise.all([
+                    fetch(pixabayAPI), fetch(unsplashAPI)
+                ]);
+                const pixabayData = await pixabayResponse.json();
+                const unsplashData = await unsplashResponse.json();
+                
+                let images = [];
+                if (pixabayData.images) images = images.concat(pixabayData.images.map(img => img)); 
+                if (unsplashData.images) images = images.concat(unsplashData.images.map(img => img)); 
+
+
+                // 🔹 ADD THESE CONSOLE LOGS HERE 🔹
+        console.log("Pixabay Data:", pixabayData);
+        console.log("Unsplash Data:", unsplashData);
+        console.log("Final Images Array:", images);
+                
+                displayImages(images.slice(0, 12));
+            } catch (error) {
+                console.error('Error fetching images:', error);
+            }
         }
 
         function displayImages(images) {
-            const gallery = document.getElementById('gallery');
+            const gallery = document.getElementById('imageGallery');
             gallery.innerHTML = '';
-
-            images.forEach(image => {
-                const img = document.createElement('img');
-                img.src = image.webformatURL;
-                img.alt = image.tags;
-                img.onclick = () => {
-                    window.location.href = `editor.html?image=${encodeURIComponent(image.largeImageURL)}`;
-                };
-                gallery.appendChild(img);
+            images.forEach((imgSrc, index) => {
+                const imgContainer = document.createElement('div');
+                imgContainer.innerHTML = `
+                    <a href="${imgSrc}" data-lightbox="gallery">
+                        <img src="${imgSrc}" alt="Image ${index + 1}">
+                    </a>
+                    <button class="edit-btn" onclick="openEditor('${imgSrc}')">Edit</button>
+                `;
+                gallery.appendChild(imgContainer);
             });
         }
 
-        if (keyword) {
-            fetchImages(keyword).then(displayImages).catch(err => {
-                document.getElementById('gallery').innerHTML = '<p>Error loading images.</p>';
-                console.error(err);
-            });
-        } else {
-            document.getElementById('gallery').innerHTML = '<p>No keyword provided.</p>';
-        }
+        function openEditor(imageUrl) {
+    window.open(`https://doctortreadway.github.io/seo-image-gallery/editor.html?image=${encodeURIComponent(imageUrl)}`, '_blank');
+}
+
+
+        window.onload = fetchImages;
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox-plus-jquery.min.js"></script>
 </body>
 </html>
