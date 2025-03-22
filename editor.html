@@ -147,7 +147,7 @@
                 const tempImg = new Image();
                 tempImg.onload = async () => {
                     try {
-                        const upscaler = new Upscaler({ model: DefaultUpscalerJSModel });
+                        const upscaler = new window.Upscaler({ model: window.DefaultUpscalerJSModel });
 
                         // Add WebGL texture size safety check
                         const gl = document.createElement('canvas').getContext('webgl');
@@ -207,6 +207,7 @@
     </script>
 </body>
 </html>
+
 
 
 
