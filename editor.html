@@ -6,6 +6,11 @@
     <title>HD Image Editor</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
 
+    <!-- TensorFlow + Upscaler + Model (UMD builds) -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@upscalerjs/default-model@latest/dist/umd/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/upscaler@latest/dist/browser/umd/upscaler.min.js"></script>
+
     <style>
         body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 0; }
         .container { max-width: 100%; margin: auto; display: flex; flex-direction: column; align-items: center; padding: 10px; }
@@ -16,12 +21,7 @@
         button, select, input { padding: 8px 16px; margin: 5px; font-size: 16px; cursor: pointer; max-width: 90vw; }
         input[type="number"] { width: 100px; }
 
-        .preview-wrapper {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-        }
-
+        .preview-wrapper { width: 100%; display: flex; justify-content: center; }
         .preview-container {
             margin-top: 40px;
             padding: 20px;
@@ -35,7 +35,6 @@
             flex-direction: column;
             align-items: center;
         }
-
         .preview-container h2 {
             margin-bottom: 10px;
             font-size: 18px;
@@ -43,7 +42,6 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-
         .preview-container img {
             max-width: 100%;
             height: auto;
@@ -51,7 +49,6 @@
             border-radius: 8px;
             background-color: white;
         }
-
         @media (max-width: 600px) {
             button, input[type="number"] { width: 90%; font-size: 14px; }
             .btn-container { flex-direction: column; align-items: center; }
@@ -59,7 +56,6 @@
     </style>
 </head>
 <body>
-
     <h1>HD Image Editor (Responsive Preview with AI Upscaling)</h1>
     <div class="container">
         <p><strong>Original Size:</strong> <span id="originalSize">Loading...</span></p>
@@ -69,25 +65,16 @@
         <canvas id="canvas"></canvas>
     </div>
 
-    <!-- Manual 2x / 3x Upscale Buttons -->
-   <script type="module">
-  import Upscaler from './upscaler.js';
-  window.Upscaler = Upscaler;
-</script>
-
     <div class="btn-container">
         <button class="upscaleBtn" data-scale="2">Apply 2× Upscale</button>
         <button class="upscaleBtn" data-scale="3">Apply 3× Upscale</button>
     </div>
 
-    <!-- Final Resize Inputs -->
     <div class="btn-container">
         <label for="customWidth">Target Width:</label>
         <input type="number" id="customWidth" placeholder="Width (px)">
-
         <label for="customHeight">Target Height:</label>
         <input type="number" id="customHeight" placeholder="Height (px)">
-
         <button id="processImageBtn">Resize to Final Dimensions</button>
     </div>
 
@@ -152,7 +139,7 @@
                 const tempImg = new Image();
                 tempImg.onload = async () => {
                     try {
-                        const upscaler = new Upscaler();
+                        const upscaler = new Upscaler({ model: DefaultUpscalerJSModel });
                         const upscaledBase64 = await upscaler.upscale(tempImg, {
                             scale,
                             output: 'base64'
@@ -203,5 +190,6 @@
     </script>
 </body>
 </html>
+
 
 
