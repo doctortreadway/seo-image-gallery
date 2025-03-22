@@ -105,36 +105,43 @@
             }
         });
 
-        // Crop & Resize with AI Upscaler
+        // Crop & Resize with AI Upscaler (fixed to use image not canvas directly)
         document.getElementById('cropBtn').addEventListener('click', async function () {
             const inputWidth = parseInt(document.getElementById('customWidth').value);
             const inputHeight = parseInt(document.getElementById('customHeight').value);
 
-            const baseCanvas = cropper.getCroppedCanvas();
+            const croppedCanvas = cropper.getCroppedCanvas();
 
-            if (baseCanvas && inputWidth > 0 && inputHeight > 0) {
-                const scaleX = inputWidth / baseCanvas.width;
-                const scaleY = inputHeight / baseCanvas.height;
-                const scale = Math.min(scaleX, scaleY); // Maintain aspect ratio
+            if (croppedCanvas && inputWidth > 0 && inputHeight > 0) {
+                const base64Image = croppedCanvas.toDataURL('image/png');
+                const imgElement = new Image();
 
-                const upscaler = new Upscaler();
-                const upscaledCanvas = await upscaler.upscale(baseCanvas, {
-                    scale,
-                    output: 'canvas',
-                });
+                imgElement.onload = async () => {
+                    const scaleX = inputWidth / imgElement.width;
+                    const scaleY = inputHeight / imgElement.height;
+                    const scale = Math.min(scaleX, scaleY);
 
-                previewImage.src = upscaledCanvas.toDataURL('image/png');
-                previewImage.style.display = 'block';
-                previewImage.style.maxWidth = '100%';
-                previewImage.style.objectFit = 'contain';
+                    const upscaler = new Upscaler();
+                    const upscaledCanvas = await upscaler.upscale(imgElement, {
+                        scale,
+                        output: 'canvas'
+                    });
 
-                document.getElementById('downloadBtn').style.display = 'inline-block';
-                document.getElementById('downloadBtn').onclick = function () {
-                    const link = document.createElement('a');
-                    link.download = 'cropped-image.png';
-                    link.href = upscaledCanvas.toDataURL('image/png');
-                    link.click();
+                    previewImage.src = upscaledCanvas.toDataURL('image/png');
+                    previewImage.style.display = 'block';
+                    previewImage.style.maxWidth = '100%';
+                    previewImage.style.objectFit = 'contain';
+
+                    document.getElementById('downloadBtn').style.display = 'inline-block';
+                    document.getElementById('downloadBtn').onclick = function () {
+                        const link = document.createElement('a');
+                        link.download = 'cropped-image.png';
+                        link.href = upscaledCanvas.toDataURL('image/png');
+                        link.click();
+                    };
                 };
+
+                imgElement.src = base64Image;
             }
         });
     </script>
