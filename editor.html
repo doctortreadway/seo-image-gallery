@@ -98,6 +98,7 @@
 
     let originalWidth, originalHeight, upscaledImg;
     let hasUpscaled = false;
+    let upscaler;
 
     if (imageUrl) {
       const proxyBase = "https://image-proxy-5u7f.onrender.com/image?url=";
@@ -106,7 +107,6 @@
     }
 
     let cropper;
-    let upscaler;
 
     image.onload = function () {
       originalWidth = image.naturalWidth;
@@ -151,15 +151,15 @@
       );
 
       try {
-        tf.engine().startScope();
-
         if (!upscaler) {
           upscaler = new window.Upscaler({ model: window.DefaultUpscalerJSModel });
         }
 
-        const upscaledBase64 = await upscaler.upscale(safeCanvas, {
-          scale: 1,
-          output: 'base64',
+        const result = await tf.tidy(() => {
+          return upscaler.upscale(safeCanvas, {
+            scale: 1,
+            output: 'base64',
+          });
         });
 
         upscaledImg = new Image();
@@ -168,9 +168,9 @@
           previewImage.style.display = 'block';
           hasUpscaled = true;
         };
-        upscaledImg.src = upscaledBase64;
+        upscaledImg.src = result;
 
-        tf.engine().endScope();
+        tf.engine().disposeVariables();
       } catch (error) {
         console.error("Upscaling failed:", error);
         alert("Upscaling failed. Try reloading or using a smaller image.");
@@ -208,7 +208,6 @@
   </script>
 </body>
 </html>
-
 
 
 
