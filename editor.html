@@ -155,11 +155,9 @@
           upscaler = new window.Upscaler({ model: window.DefaultUpscalerJSModel });
         }
 
-        const result = await tf.tidy(() => {
-          return upscaler.upscale(safeCanvas, {
-            scale: 1,
-            output: 'base64',
-          });
+        const upscaledBase64 = await upscaler.upscale(safeCanvas, {
+          scale: 1,
+          output: 'base64',
         });
 
         upscaledImg = new Image();
@@ -168,9 +166,11 @@
           previewImage.style.display = 'block';
           hasUpscaled = true;
         };
-        upscaledImg.src = result;
+        upscaledImg.src = upscaledBase64;
 
-        tf.engine().disposeVariables();
+        // FULL cleanup
+        tf.disposeVariables();
+        tf.engine().backend().dispose();
       } catch (error) {
         console.error("Upscaling failed:", error);
         alert("Upscaling failed. Try reloading or using a smaller image.");
@@ -208,7 +208,6 @@
   </script>
 </body>
 </html>
-
 
 
 
