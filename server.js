@@ -11,6 +11,11 @@ app.get("/image", async (req, res) => {
     const contentType = response.headers.get("content-type");
     const buffer = await response.buffer();
 
+    app.get("/ping", (req, res) => {
+  res.send("UP");
+});
+
+    
     res.set("Content-Type", contentType || "image/jpeg");
     res.set("Access-Control-Allow-Origin", "*");
     res.send(buffer);
