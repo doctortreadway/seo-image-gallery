@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,7 +65,7 @@
   </div>
 
   <div class="btn-container">
-    <button class="upscaleBtn" data-scale="1">Upscale to 1920x1080</button>
+    <button class="upscaleBtn">Upscale to 1920x1080</button>
   </div>
 
   <div class="btn-container">
@@ -107,6 +106,8 @@
     }
 
     let cropper;
+    let upscaler;
+
     image.onload = function () {
       originalWidth = image.naturalWidth;
       originalHeight = image.naturalHeight;
@@ -150,7 +151,12 @@
       );
 
       try {
-        const upscaler = new window.Upscaler({ model: window.DefaultUpscalerJSModel });
+        tf.engine().startScope();
+
+        if (!upscaler) {
+          upscaler = new window.Upscaler({ model: window.DefaultUpscalerJSModel });
+        }
+
         const upscaledBase64 = await upscaler.upscale(safeCanvas, {
           scale: 1,
           output: 'base64',
@@ -163,9 +169,11 @@
           hasUpscaled = true;
         };
         upscaledImg.src = upscaledBase64;
+
+        tf.engine().endScope();
       } catch (error) {
         console.error("Upscaling failed:", error);
-        alert("Upscaling failed. Try smaller input or different image.");
+        alert("Upscaling failed. Try reloading or using a smaller image.");
       }
     });
 
