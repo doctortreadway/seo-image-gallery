@@ -150,31 +150,36 @@
         0, 0, UPSCALE_WIDTH, UPSCALE_HEIGHT
       );
 
-      try {
-        if (!upscaler) {
-          upscaler = new window.Upscaler({ model: window.DefaultUpscalerJSModel });
+      const base64PNG = safeCanvas.toDataURL('image/png');
+
+      const tempImg = new Image();
+      tempImg.onload = async () => {
+        try {
+          if (!upscaler) {
+            upscaler = new window.Upscaler({ model: window.DefaultUpscalerJSModel });
+          }
+
+          const upscaledBase64 = await upscaler.upscale(tempImg, {
+            scale: 1,
+            output: 'base64',
+          });
+
+          upscaledImg = new Image();
+          upscaledImg.onload = () => {
+            previewImage.src = upscaledImg.src;
+            previewImage.style.display = 'block';
+            hasUpscaled = true;
+          };
+          upscaledImg.src = upscaledBase64;
+
+          tf.disposeVariables();
+          tf.engine().backend().dispose();
+        } catch (error) {
+          console.error("Upscaling failed:", error);
+          alert("Upscaling failed. Try reloading or using a smaller image.");
         }
-
-        const upscaledBase64 = await upscaler.upscale(safeCanvas, {
-          scale: 1,
-          output: 'base64',
-        });
-
-        upscaledImg = new Image();
-        upscaledImg.onload = () => {
-          previewImage.src = upscaledImg.src;
-          previewImage.style.display = 'block';
-          hasUpscaled = true;
-        };
-        upscaledImg.src = upscaledBase64;
-
-        // FULL cleanup
-        tf.disposeVariables();
-        tf.engine().backend().dispose();
-      } catch (error) {
-        console.error("Upscaling failed:", error);
-        alert("Upscaling failed. Try reloading or using a smaller image.");
-      }
+      };
+      tempImg.src = base64PNG;
     });
 
     document.getElementById('processImageBtn').addEventListener('click', function () {
@@ -208,7 +213,6 @@
   </script>
 </body>
 </html>
-
 
 
 
