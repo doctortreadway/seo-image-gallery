@@ -102,7 +102,10 @@
         let hasUpscaled = false;
 
         if (imageUrl) {
-            image.src = 'https://corsproxy.io/?' + decodeURIComponent(imageUrl);
+           const proxyBase = "https://image-proxy-5u7f.onrender.com/image?url=";
+            image.crossOrigin = "anonymous";
+            image.src = proxyBase + encodeURIComponent(imageUrl);
+
 
         }
 
