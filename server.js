@@ -6,6 +6,7 @@ app.use(cors());
 
 app.get('/image', (req, res) => {
   const imageUrl = req.query.url;
+  console.log("Incoming image request for:", imageUrl); // ← ADD THIS LINE
   if (!imageUrl) return res.status(400).send("Missing 'url' parameter");
 
   request.get({ url: imageUrl, encoding: null }, (err, resp, buffer) => {
