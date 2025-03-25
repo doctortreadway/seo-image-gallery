@@ -46,69 +46,64 @@
   </div>
 
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const imageUrl = urlParams.get('image');
-    const image = document.getElementById('image');
-    const originalSizeDisplay = document.getElementById('originalSize');
-    const previewImage = document.getElementById('preview');
-    const picaInstance = window.pica();
-    let cropper;
+  const urlParams = new URLSearchParams(window.location.search);
+  const imageUrl = urlParams.get('image');
+  const image = document.getElementById('image');
+  const originalSizeDisplay = document.getElementById('originalSize');
+  const previewImage = document.getElementById('preview');
+  const picaInstance = window.pica();
+  let cropper;
 
-    if (imageUrl) {
-      const proxyBase = "https://image-proxy-5u7f.onrender.com/image?url=";
-      image.crossOrigin = "anonymous";
-      image.src = proxyBase + encodeURIComponent(imageUrl);
-    }
+  const proxyBase = "https://image-proxy-nc1w.onrender.com/image?url=";
 
-    image.onload = () => {
-      originalSizeDisplay.textContent = `${image.naturalWidth} x ${image.naturalHeight}px`;
-      cropper = new Cropper(image, {
-        viewMode: 1,
-        autoCropArea: 1,
-        responsive: true
-      });
+  if (imageUrl) {
+    image.crossOrigin = "anonymous";
+    image.src = proxyBase + encodeURIComponent(imageUrl);
+  }
+
+  image.onload = () => {
+    originalSizeDisplay.textContent = `${image.naturalWidth} x ${image.naturalHeight}px`;
+    cropper = new Cropper(image, {
+      viewMode: 1,
+      autoCropArea: 1,
+      responsive: true
+    });
+  };
+
+  document.querySelector('.upscaleBtn').addEventListener('click', async () => {
+    const cropCanvas = cropper.getCroppedCanvas();
+    const upscaleCanvas = document.createElement('canvas');
+    upscaleCanvas.width = 1920;
+    upscaleCanvas.height = 1080;
+    await picaInstance.resize(cropCanvas, upscaleCanvas);
+    previewImage.src = upscaleCanvas.toDataURL();
+    previewImage.style.display = 'block';
+    showDownload(previewImage.src);
+  });
+
+  document.getElementById('processImageBtn').addEventListener('click', async () => {
+    const width = parseInt(document.getElementById('customWidth').value);
+    const height = parseInt(document.getElementById('customHeight').value);
+    if (!width || !height) return;
+
+    const cropCanvas = cropper.getCroppedCanvas();
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = width;
+    finalCanvas.height = height;
+    await picaInstance.resize(cropCanvas, finalCanvas);
+    previewImage.src = finalCanvas.toDataURL();
+    previewImage.style.display = 'block';
+    showDownload(previewImage.src);
+  });
+
+  function showDownload(dataUrl) {
+    const downloadBtn = document.getElementById('downloadBtn');
+    downloadBtn.style.display = 'inline-block';
+    downloadBtn.onclick = () => {
+      const link = document.createElement('a');
+      link.download = 'edited-image.png';
+      link.href = dataUrl;
+      link.click();
     };
-
-    document.querySelector('.upscaleBtn').addEventListener('click', async () => {
-      const cropCanvas = cropper.getCroppedCanvas();
-      const upscaleCanvas = document.createElement('canvas');
-      upscaleCanvas.width = 1920;
-      upscaleCanvas.height = 1080;
-      await picaInstance.resize(cropCanvas, upscaleCanvas);
-      previewImage.src = upscaleCanvas.toDataURL();
-      previewImage.style.display = 'block';
-      showDownload(previewImage.src);
-    });
-
-    document.getElementById('processImageBtn').addEventListener('click', async () => {
-      const width = parseInt(document.getElementById('customWidth').value);
-      const height = parseInt(document.getElementById('customHeight').value);
-      if (!width || !height) return;
-
-      const cropCanvas = cropper.getCroppedCanvas();
-      const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = width;
-      finalCanvas.height = height;
-      await picaInstance.resize(cropCanvas, finalCanvas);
-      previewImage.src = finalCanvas.toDataURL();
-      previewImage.style.display = 'block';
-      showDownload(previewImage.src);
-    });
-
-    function showDownload(dataUrl) {
-      const downloadBtn = document.getElementById('downloadBtn');
-      downloadBtn.style.display = 'inline-block';
-      downloadBtn.onclick = () => {
-        const link = document.createElement('a');
-        link.download = 'edited-image.png';
-        link.href = dataUrl;
-        link.click();
-      };
-    }
-  </script>
-</body>
-</html>
-
-
-
-
+  }
+</script>
