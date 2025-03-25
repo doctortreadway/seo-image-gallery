@@ -3,65 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HD Image Editor</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+  <title>HD Image Editor (Pica Edition)</title>
 
-  <!-- TensorFlow + Upscaler + Model (UMD builds) -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@upscalerjs/default-model@latest/dist/umd/index.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/upscaler@latest/dist/browser/umd/upscaler.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="https://unpkg.com/pica@8.0.0/dist/pica.min.js"></script>
 
   <style>
     body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 0; }
-    .container { max-width: 100%; margin: auto; display: flex; flex-direction: column; align-items: center; padding: 10px; }
-    .editor-container { width: 100%; max-width: 1920px; height: auto; max-height: 1080px; overflow: hidden; display: flex; justify-content: center; align-items: center; position: relative; }
-    .editor-container img { width: auto; height: auto; max-width: 100%; max-height: 100%; display: block; object-fit: contain; }
+    .container, .btn-container, .preview-container { margin-top: 10px; }
     canvas { display: none; }
-    .btn-container { margin-top: 10px; flex-wrap: wrap; justify-content: center; display: flex; flex-direction: row; flex-wrap: wrap; }
-    button, select, input { padding: 8px 16px; margin: 5px; font-size: 16px; cursor: pointer; max-width: 90vw; }
-    input[type="number"] { width: 100px; }
-    .preview-wrapper { width: 100%; display: flex; justify-content: center; }
-    .preview-container {
-      margin-top: 40px;
-      padding: 20px;
-      border: 2px dashed #ccc;
-      background-color: #f9f9f9;
-      width: 95%;
-      max-width: 1000px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-      border-radius: 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .preview-container h2 {
-      margin-bottom: 10px;
-      font-size: 18px;
-      color: #333;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    .preview-container img {
-      max-width: 100%;
-      height: auto;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      background-color: white;
-    }
-    @media (max-width: 600px) {
-      button, input[type="number"] { width: 90%; font-size: 14px; }
-      .btn-container { flex-direction: column; align-items: center; }
-    }
+    img { max-width: 100%; height: auto; }
+    button { margin: 5px; padding: 10px 15px; font-size: 16px; cursor: pointer; }
   </style>
 </head>
 <body>
-  <h1>HD Image Editor (Responsive Preview with AI Upscaling)</h1>
+  <h1>HD Image Editor (Fast Client-side Upscaling)</h1>
+  <p><strong>Original Size:</strong> <span id="originalSize">Loading...</span></p>
   <div class="container">
-    <p><strong>Original Size:</strong> <span id="originalSize">Loading...</span></p>
-    <div class="editor-container" id="editorContainer">
-      <img id="image" src="" alt="Image to Edit" />
-    </div>
-    <canvas id="canvas"></canvas>
+    <img id="image" alt="Image to Edit" />
   </div>
 
   <div class="btn-container">
@@ -69,36 +29,30 @@
   </div>
 
   <div class="btn-container">
-    <label for="customWidth">Target Width:</label>
+    <label for="customWidth">Width:</label>
     <input type="number" id="customWidth" placeholder="Width (px)" />
-    <label for="customHeight">Target Height:</label>
+    <label for="customHeight">Height:</label>
     <input type="number" id="customHeight" placeholder="Height (px)" />
-    <button id="processImageBtn">Resize to Final Dimensions</button>
+    <button id="processImageBtn">Resize</button>
   </div>
 
   <div class="btn-container">
-    <button id="downloadBtn" style="display: none;">Download Image</button>
+    <button id="downloadBtn" style="display:none;">Download Image</button>
   </div>
 
-  <div class="preview-wrapper">
-    <div class="preview-container">
-      <h2>Preview:</h2>
-      <img id="preview" style="display: none;" alt="Preview" />
-    </div>
+  <div class="preview-container">
+    <h2>Preview:</h2>
+    <img id="preview" style="display:none;" />
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const imageUrl = urlParams.get('image');
     const image = document.getElementById('image');
-    const editorContainer = document.getElementById('editorContainer');
     const originalSizeDisplay = document.getElementById('originalSize');
     const previewImage = document.getElementById('preview');
-
-    let originalWidth, originalHeight, upscaledImg;
-    let hasUpscaled = false;
-    let upscaler;
+    const picaInstance = window.pica();
+    let cropper;
 
     if (imageUrl) {
       const proxyBase = "https://image-proxy-5u7f.onrender.com/image?url=";
@@ -106,110 +60,51 @@
       image.src = proxyBase + encodeURIComponent(imageUrl);
     }
 
-    let cropper;
-
-    image.onload = function () {
-      originalWidth = image.naturalWidth;
-      originalHeight = image.naturalHeight;
-      originalSizeDisplay.textContent = `${originalWidth} x ${originalHeight} px`;
-
-      const maxWidth = 1920;
-      const maxHeight = 1080;
-      const scaleRatio = Math.min(maxWidth / originalWidth, maxHeight / originalHeight, 1);
-      const displayWidth = originalWidth * scaleRatio;
-      const displayHeight = originalHeight * scaleRatio;
-
-      editorContainer.style.width = `${displayWidth}px`;
-      editorContainer.style.height = `${displayHeight}px`;
-      image.style.width = `${displayWidth}px`;
-      image.style.height = `${displayHeight}px`;
-
+    image.onload = () => {
+      originalSizeDisplay.textContent = `${image.naturalWidth} x ${image.naturalHeight}px`;
       cropper = new Cropper(image, {
-        aspectRatio: NaN,
         viewMode: 1,
         autoCropArea: 1,
-        responsive: true,
-        zoomable: true,
+        responsive: true
       });
     };
 
     document.querySelector('.upscaleBtn').addEventListener('click', async () => {
-      const cropData = cropper.getData();
-
-      const UPSCALE_WIDTH = 1920;
-      const UPSCALE_HEIGHT = 1080;
-
-      const safeCanvas = document.createElement('canvas');
-      safeCanvas.width = UPSCALE_WIDTH;
-      safeCanvas.height = UPSCALE_HEIGHT;
-      const ctx = safeCanvas.getContext('2d');
-
-      ctx.drawImage(
-        image,
-        cropData.x, cropData.y, cropData.width, cropData.height,
-        0, 0, UPSCALE_WIDTH, UPSCALE_HEIGHT
-      );
-
-      const base64PNG = safeCanvas.toDataURL('image/png');
-
-      const tempImg = new Image();
-      tempImg.onload = async () => {
-        try {
-          if (!upscaler) {
-            upscaler = new window.Upscaler({ model: window.DefaultUpscalerJSModel });
-          }
-
-          const upscaledBase64 = await upscaler.upscale(tempImg, {
-            scale: 1,
-            output: 'base64',
-          });
-
-          upscaledImg = new Image();
-          upscaledImg.onload = () => {
-            previewImage.src = upscaledImg.src;
-            previewImage.style.display = 'block';
-            hasUpscaled = true;
-          };
-          upscaledImg.src = upscaledBase64;
-
-          tf.disposeVariables();
-          tf.engine().backend().dispose();
-        } catch (error) {
-          console.error("Upscaling failed:", error);
-          alert("Upscaling failed. Try reloading or using a smaller image.");
-        }
-      };
-      tempImg.src = base64PNG;
+      const cropCanvas = cropper.getCroppedCanvas();
+      const upscaleCanvas = document.createElement('canvas');
+      upscaleCanvas.width = 1920;
+      upscaleCanvas.height = 1080;
+      await picaInstance.resize(cropCanvas, upscaleCanvas);
+      previewImage.src = upscaleCanvas.toDataURL();
+      previewImage.style.display = 'block';
+      showDownload(previewImage.src);
     });
 
-    document.getElementById('processImageBtn').addEventListener('click', function () {
-      const targetWidth = parseInt(document.getElementById('customWidth').value);
-      const targetHeight = parseInt(document.getElementById('customHeight').value);
-      if (!targetWidth || !targetHeight || targetWidth <= 0 || targetHeight <= 0) return;
+    document.getElementById('processImageBtn').addEventListener('click', async () => {
+      const width = parseInt(document.getElementById('customWidth').value);
+      const height = parseInt(document.getElementById('customHeight').value);
+      if (!width || !height) return;
 
-      const canvas = document.createElement('canvas');
-      canvas.width = targetWidth;
-      canvas.height = targetHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-
-      const source = hasUpscaled ? upscaledImg : cropper.getCroppedCanvas();
-      ctx.drawImage(source, 0, 0, targetWidth, targetHeight);
-
-      const finalOutput = canvas.toDataURL('image/png');
-      previewImage.src = finalOutput;
+      const cropCanvas = cropper.getCroppedCanvas();
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = width;
+      finalCanvas.height = height;
+      await picaInstance.resize(cropCanvas, finalCanvas);
+      previewImage.src = finalCanvas.toDataURL();
       previewImage.style.display = 'block';
+      showDownload(previewImage.src);
+    });
 
+    function showDownload(dataUrl) {
       const downloadBtn = document.getElementById('downloadBtn');
       downloadBtn.style.display = 'inline-block';
-      downloadBtn.onclick = function () {
+      downloadBtn.onclick = () => {
         const link = document.createElement('a');
-        link.download = 'final-image.png';
-        link.href = finalOutput;
+        link.download = 'edited-image.png';
+        link.href = dataUrl;
         link.click();
       };
-    });
+    }
   </script>
 </body>
 </html>
