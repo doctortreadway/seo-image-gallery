@@ -198,6 +198,22 @@
         link.click();
       };
     }
+    const params = new URLSearchParams(window.location.search);
+    const creator = params.get('by') || 'Unknown';
+    const source = params.get('source') || 'Unknown';
+
+    const creditText = `📸 Image by ${creator} via ${source}`;
+    const creditBox = document.createElement('div');
+    creditBox.textContent = creditText;
+    creditBox.style.fontSize = '14px';
+    creditBox.style.color = '#555';
+    creditBox.style.marginTop = '10px';
+    creditBox.style.textAlign = 'center';
+
+    const previewContainer = document.querySelector('.preview-container');
+    previewContainer.appendChild(creditBox);
+
+    
   </script>
 </body>
 </html>
