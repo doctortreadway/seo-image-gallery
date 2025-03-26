@@ -17,7 +17,7 @@
     <h1 id="galleryTitle">API Main Keyword Images</h1>
     <div class="gallery" id="imageGallery"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox-plus-jquery.min.js"></script>
 
     <script>
         async function fetchImages() {
@@ -40,19 +40,11 @@
                 let images = [];
 
                 if (pixabayData.images) {
-                    images = images.concat(pixabayData.images.map(img => ({
-                        src: img.webformatURL,
-                        creator: img.user,
-                        source: 'Pixabay'
-                    })));
+                    images = images.concat(pixabayData.images.map(img => img.webformatURL));
                 }
 
                 if (unsplashData.images) {
-                    images = images.concat(unsplashData.images.map(img => ({
-                        src: img.urls.small,
-                        creator: img.user.name,
-                        source: 'Unsplash'
-                    })));
+                    images = images.concat(unsplashData.images.map(img => img.urls.small));
                 }
 
                 console.log("Pixabay Data:", pixabayData);
@@ -68,33 +60,26 @@
         function displayImages(images) {
             const gallery = document.getElementById('imageGallery');
             gallery.innerHTML = '';
-            images.forEach((img, index) => {
+            images.forEach((imgSrc, index) => {
                 const imgContainer = document.createElement('div');
                 imgContainer.innerHTML = `
-                    <a href="${img.src}" data-lightbox="gallery">
-                        <img src="${img.src}" alt="Image ${index + 1}">
+                    <a href="${imgSrc}" data-lightbox="gallery">
+                        <img src="${imgSrc}" alt="Image ${index + 1}">
                     </a>
-                    <button class="edit-btn" onclick="openEditor('${img.src}', '${img.creator}', '${img.source}')">Edit</button>
+                    <button class="edit-btn" onclick="openEditor('${imgSrc}')">Edit</button>
                 `;
                 gallery.appendChild(imgContainer);
             });
-
-            // ✅ Manually relaunch Lightbox after content update
-            lightbox.option({ resizeDuration: 200, wrapAround: true });
         }
 
-        function openEditor(imageUrl, creator = 'Unknown', source = 'Unknown') {
-            const editorUrl = `https://doctortreadway.github.io/seo-image-gallery/editor.html` +
-                `?image=${encodeURIComponent(imageUrl)}` +
-                `&by=${encodeURIComponent(creator)}` +
-                `&source=${encodeURIComponent(source)}`;
-
-            window.open(editorUrl, '_blank');
+        function openEditor(imageUrl) {
+            window.open(`https://doctortreadway.github.io/seo-image-gallery/editor.html?image=${encodeURIComponent(imageUrl)}`, '_blank');
         }
 
         window.onload = fetchImages;
     </script>
 </body>
 </html>
+
 
 
