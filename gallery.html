@@ -76,6 +76,11 @@
                 `;
                 gallery.appendChild(imgContainer);
             });
+
+            // ✅ Refresh Lightbox after dynamic content load
+            if (window.lightbox && typeof window.lightbox.refresh === 'function') {
+                window.lightbox.refresh();
+            }
         }
 
         function openEditor(imageUrl, creator = 'Unknown', source = 'Unknown') {
