@@ -40,31 +40,37 @@
 
         let images = [];
 
-        if (pixabayData.images) {
+       if (pixabayData.images) {
+  const safePixabay = pixabayData.images.filter(img => {
+    const ok = img.webformatURL && img.user;
+    if (!ok) console.warn("Filtered out bad Pixabay image:", img);
+    return ok;
+  });
+
   images = images.concat(
-    pixabayData.images
-      .filter(img => img.webformatURL) // ✅ safety check
-      .map(img => ({
-        src: img.webformatURL,
-        creator: img.user,
-        source: 'Pixabay'
-      }))
+    safePixabay.map(img => ({
+      src: img.webformatURL,
+      creator: img.user,
+      source: 'Pixabay'
+    }))
   );
 }
 
+if (unsplashData.images) {
+  const safeUnsplash = unsplashData.images.filter(img => {
+    const ok = img.urls && img.urls.small && img.user && img.user.name;
+    if (!ok) console.warn("Filtered out bad Unsplash image:", img);
+    return ok;
+  });
 
-        if (unsplashData.images) {
   images = images.concat(
-    unsplashData.images
-      .filter(img => img.urls && img.urls.small) // ✅ safety filter
-      .map(img => ({
-        src: img.urls.small,
-        creator: img.user.name,
-        source: 'Unsplash'
-      }))
+    safeUnsplash.map(img => ({
+      src: img.urls.small,
+      creator: img.user.name,
+      source: 'Unsplash'
+    }))
   );
 }
-
 
         console.log("Pixabay Data:", pixabayData);
         console.log("Unsplash Data:", unsplashData);
