@@ -133,6 +133,7 @@
       <div class="preview-container">
         <h2>Preview:</h2>
         <img id="preview" style="display:none;" />
+        <div id="attributionLabel" style="font-size: 14px; color: #555; margin-top: 10px; text-align: center;"></div>
       </div>
     </div>
   </div>
@@ -140,10 +141,6 @@
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const imageUrl = urlParams.get('image');
-    const creator = urlParams.get('by') || 'Unknown';
-    const source = urlParams.get('source') || 'Unknown';
-    const creditText = `📸 Image by ${creator} via ${source}`;
-
     const image = document.getElementById('image');
     const originalSizeDisplay = document.getElementById('originalSize');
     const previewImage = document.getElementById('preview');
@@ -168,9 +165,13 @@
 
     document.querySelector('.upscaleBtn').addEventListener('click', async () => {
       const cropCanvas = cropper.getCroppedCanvas();
-      const finalCanvas = await renderWithAttribution(cropCanvas, 1920, 1080);
-      previewImage.src = finalCanvas.toDataURL();
+      const upscaleCanvas = document.createElement('canvas');
+      upscaleCanvas.width = 1920;
+      upscaleCanvas.height = 1080;
+      await picaInstance.resize(cropCanvas, upscaleCanvas);
+      previewImage.src = upscaleCanvas.toDataURL();
       previewImage.style.display = 'block';
+      document.getElementById('attributionLabel').style.display = 'none';
       showDownload(previewImage.src);
     });
 
@@ -180,9 +181,13 @@
       if (!width || !height) return;
 
       const cropCanvas = cropper.getCroppedCanvas();
-      const finalCanvas = await renderWithAttribution(cropCanvas, width, height);
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = width;
+      finalCanvas.height = height;
+      await picaInstance.resize(cropCanvas, finalCanvas);
       previewImage.src = finalCanvas.toDataURL();
       previewImage.style.display = 'block';
+      document.getElementById('attributionLabel').style.display = 'none';
       showDownload(previewImage.src);
     });
 
@@ -197,38 +202,12 @@
       };
     }
 
-    async function renderWithAttribution(sourceCanvas, width, height) {
-      const resizedCanvas = document.createElement('canvas');
-      resizedCanvas.width = width;
-      resizedCanvas.height = height;
-      await picaInstance.resize(sourceCanvas, resizedCanvas);
-
-      const footerHeight = 40;
-      const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = width;
-      finalCanvas.height = height + footerHeight;
-
-      const ctx = finalCanvas.getContext('2d');
-      ctx.drawImage(resizedCanvas, 0, 0);
-
-      // Draw footer
-      ctx.fillStyle = '#f9f9f9';
-      ctx.fillRect(0, height, width, footerHeight);
-      ctx.fillStyle = '#333';
-      ctx.font = '16px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(creditText, width / 2, height + 28);
-
-      return finalCanvas;
-    }
-
-    const creditBox = document.createElement('div');
-    creditBox.textContent = creditText;
-    creditBox.style.fontSize = '14px';
-    creditBox.style.color = '#555';
-    creditBox.style.marginTop = '10px';
-    creditBox.style.textAlign = 'center';
-    document.querySelector('.preview-container').appendChild(creditBox);
+    // Attribution logic
+    const params = new URLSearchParams(window.location.search);
+    const creator = params.get('by') || 'Unknown';
+    const source = params.get('source') || 'Unknown';
+    const creditText = `📸 Image by ${creator} via ${source}`;
+    document.getElementById('attributionLabel').textContent = creditText;
   </script>
 </body>
 </html>
