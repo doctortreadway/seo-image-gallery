@@ -40,8 +40,23 @@
                 const unsplashData = await unsplashResponse.json();
                 
                 let images = [];
-                if (pixabayData.images) images = images.concat(pixabayData.images.map(img => img)); 
-                if (unsplashData.images) images = images.concat(unsplashData.images.map(img => img)); 
+                 if (pixabayData.images) {
+                      images = images.concat(pixabayData.images.map(img => ({
+                      src: img.webformatURL,
+                      creator: img.user,
+                      source: 'Pixabay'
+                                      })));
+}
+
+                if (unsplashData.images) {
+                      images = images.concat(unsplashData.images.map(img => ({
+                      src: img.urls.small,
+                      creator: img.user.name,
+                      source: 'Unsplash'
+                                       })));
+}
+
+                
 
 
                 // 🔹 ADD THESE CONSOLE LOGS HERE 🔹
