@@ -70,8 +70,15 @@
             });
         }
 
-        function openEditor(imageUrl) {
-    window.open(`https://doctortreadway.github.io/seo-image-gallery/editor.html?image=${encodeURIComponent(imageUrl)}`, '_blank');
+        function openEditor(imageUrl, creator = 'Unknown', source = 'Unknown') {
+  const editorUrl = `https://doctortreadway.github.io/seo-image-gallery/editor.html` +
+    `?image=${encodeURIComponent(imageUrl)}` +
+    `&by=${encodeURIComponent(creator)}` +
+    `&source=${encodeURIComponent(source)}`;
+
+  window.open(editorUrl, '_blank');
+}
+
 }
 
 
