@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title id="pageTitle">API Main Keyword Images</title>
-  <link rel="icon" type="image/x-icon" href="favicon.ico" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css">
   <style>
     body { font-family: Arial, sans-serif; text-align: center; }
     .gallery { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
@@ -40,37 +40,25 @@
 
         let images = [];
 
-       if (pixabayData.images) {
-  const safePixabay = pixabayData.images.filter(img => {
-    const ok = img.webformatURL && img.user;
-    if (!ok) console.warn("Filtered out bad Pixabay image:", img);
-    return ok;
-  });
+        if (pixabayData.images) {
+          images = images.concat(
+            pixabayData.images.map(img => ({
+              src: img.webformatURL || '',
+              creator: img.user || 'Unknown',
+              source: 'Pixabay'
+            }))
+          );
+        }
 
-  images = images.concat(
-    safePixabay.map(img => ({
-      src: img.webformatURL,
-      creator: img.user,
-      source: 'Pixabay'
-    }))
-  );
-}
-
-if (unsplashData.images) {
-  const safeUnsplash = unsplashData.images.filter(img => {
-    const ok = img.urls && img.urls.small && img.user && img.user.name;
-    if (!ok) console.warn("Filtered out bad Unsplash image:", img);
-    return ok;
-  });
-
-  images = images.concat(
-    safeUnsplash.map(img => ({
-      src: img.urls.small,
-      creator: img.user.name,
-      source: 'Unsplash'
-    }))
-  );
-}
+        if (unsplashData.images) {
+          images = images.concat(
+            unsplashData.images.map(img => ({
+              src: (img.urls && img.urls.small) || '',
+              creator: (img.user && img.user.name) || 'Unknown',
+              source: 'Unsplash'
+            }))
+          );
+        }
 
         console.log("Pixabay Data:", pixabayData);
         console.log("Unsplash Data:", unsplashData);
@@ -86,6 +74,7 @@ if (unsplashData.images) {
       const gallery = document.getElementById("imageGallery");
       gallery.innerHTML = '';
       images.forEach((img, index) => {
+        if (!img.src) return; // skip invalid images
         const imgContainer = document.createElement("div");
         imgContainer.innerHTML = `
           <a href="${img.src}" data-lightbox="gallery">
