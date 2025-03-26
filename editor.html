@@ -141,11 +141,16 @@
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const imageUrl = urlParams.get('image');
+    const creator = urlParams.get('by') || 'Unknown';
+    const source = urlParams.get('source') || 'Unknown';
     const image = document.getElementById('image');
     const originalSizeDisplay = document.getElementById('originalSize');
     const previewImage = document.getElementById('preview');
+    const attributionLabel = document.getElementById('attributionLabel');
     const picaInstance = window.pica();
     let cropper;
+
+    attributionLabel.textContent = `📸 Image by ${creator} via ${source}`;
 
     const proxyBase = "https://image-proxy-nc1w.onrender.com/image?url=";
 
@@ -163,15 +168,25 @@
       });
     };
 
+    async function drawAttribution(ctx, width, height) {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+      ctx.fillRect(0, height - 30, width, 30);
+      ctx.font = '16px Arial';
+      ctx.fillStyle = 'white';
+      ctx.fillText(`📸 Image by ${creator} via ${source}`, 10, height - 10);
+    }
+
     document.querySelector('.upscaleBtn').addEventListener('click', async () => {
       const cropCanvas = cropper.getCroppedCanvas();
       const upscaleCanvas = document.createElement('canvas');
       upscaleCanvas.width = 1920;
       upscaleCanvas.height = 1080;
+      const ctx = upscaleCanvas.getContext('2d');
       await picaInstance.resize(cropCanvas, upscaleCanvas);
+      await drawAttribution(ctx, upscaleCanvas.width, upscaleCanvas.height);
       previewImage.src = upscaleCanvas.toDataURL();
       previewImage.style.display = 'block';
-      document.getElementById('attributionLabel').style.display = 'none';
+      attributionLabel.style.display = 'none';
       showDownload(previewImage.src);
     });
 
@@ -184,10 +199,12 @@
       const finalCanvas = document.createElement('canvas');
       finalCanvas.width = width;
       finalCanvas.height = height;
+      const ctx = finalCanvas.getContext('2d');
       await picaInstance.resize(cropCanvas, finalCanvas);
+      await drawAttribution(ctx, width, height);
       previewImage.src = finalCanvas.toDataURL();
       previewImage.style.display = 'block';
-      document.getElementById('attributionLabel').style.display = 'none';
+      attributionLabel.style.display = 'none';
       showDownload(previewImage.src);
     });
 
@@ -201,13 +218,6 @@
         link.click();
       };
     }
-
-    // Attribution logic
-    const params = new URLSearchParams(window.location.search);
-    const creator = params.get('by') || 'Unknown';
-    const source = params.get('source') || 'Unknown';
-    const creditText = `📸 Image by ${creator} via ${source}`;
-    document.getElementById('attributionLabel').textContent = creditText;
   </script>
 </body>
 </html>
