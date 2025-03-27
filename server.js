@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 
-const app = express(); // ✅ THIS is what was missing
+const app = express(); // 
 
 app.use(cors());
 
