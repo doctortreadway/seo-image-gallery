@@ -44,8 +44,9 @@
           images = images.concat(
             pixabayData.images.map(img => ({
               src: img.webformatURL || '',
-              creator: img.user || 'Unknown',
-              source: 'Pixabay'
+                full: img.largeImageURL || '',
+                  creator: img.user || 'Unknown',
+                     source: 'Pixabay'
             }))
           );
         }
@@ -54,8 +55,9 @@
           images = images.concat(
             unsplashData.images.map(img => ({
               src: (img.urls && img.urls.small) || '',
-              creator: (img.user && img.user.name) || 'Unknown',
-              source: 'Unsplash'
+                full: (img.urls && img.urls.full) || '',
+                  creator: (img.user && img.user.name) || 'Unknown',
+                    source: 'Unsplash'
             }))
           );
         }
@@ -80,7 +82,8 @@
           <a href="${img.src}" data-lightbox="gallery">
             <img src="${img.src}" alt="Image ${index + 1}">
           </a>
-          <button class="edit-btn" onclick="openEditor('${img.src}', '${img.creator}', '${img.source}')">Edit</button>
+          <button class="edit-btn" onclick="openEditor('${img.full || img.src}', '${img.creator}', '${img.source}')">Edit</button>
+
         `;
         gallery.appendChild(imgContainer);
       });
