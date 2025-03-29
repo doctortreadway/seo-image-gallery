@@ -137,88 +137,114 @@
       </div>
     </div>
   </div>
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const imageUrl = urlParams.get('image');
+  const creator = urlParams.get('by') || 'Unknown';
+  const source = urlParams.get('source') || 'Unknown';
 
-  <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const imageUrl = urlParams.get('image');
-    const creator = urlParams.get('by') || 'Unknown';
-    const source = urlParams.get('source') || 'Unknown';
-    const image = document.getElementById('image');
-    const originalSizeDisplay = document.getElementById('originalSize');
-    const previewImage = document.getElementById('preview');
-    const attributionLabel = document.getElementById('attributionLabel');
-    const picaInstance = window.pica();
-    let cropper;
+  const image = document.getElementById('image');
+  const originalSizeDisplay = document.getElementById('originalSize');
+  const previewImage = document.getElementById('preview');
+  const attributionLabel = document.getElementById('attributionLabel');
+  const picaInstance = window.pica();
+  let cropper;
 
-    attributionLabel.textContent = `📸 Image by ${creator} via ${source}`;
+  const proxyBase = "https://image-proxy-7r6f.onrender.com/image?url=";
 
-    const proxyBase = "https://image-proxy-7r6f.onrender.com/image?url=";
+  // Set attribution label
+  attributionLabel.textContent = `📸 Image by ${creator} via ${source}`;
 
-    if (imageUrl) {
-      image.crossOrigin = "anonymous";
-      image.src = proxyBase + encodeURIComponent(imageUrl);
-    }
+  // Load image using proxy
+  if (imageUrl) {
+    image.crossOrigin = "anonymous";
+    image.src = proxyBase + encodeURIComponent(imageUrl);
+  } else {
+    alert("No image URL provided.");
+  }
 
-    image.onload = () => {
-      originalSizeDisplay.textContent = `${image.naturalWidth} x ${image.naturalHeight}px`;
-      cropper = new Cropper(image, {
-        viewMode: 1,
-        autoCropArea: 1,
-        responsive: true
-      });
+  // Initialize cropper when image loads
+  image.onload = () => {
+    originalSizeDisplay.textContent = `${image.naturalWidth} x ${image.naturalHeight}px`;
+    cropper = new Cropper(image, {
+      viewMode: 1,
+      autoCropArea: 1,
+      responsive: true
+    });
+  };
+
+  // Optional: fallback alert
+  image.onerror = () => {
+    alert("⚠️ Failed to load the image. Please try another.");
+  };
+
+  // Utility: Draw attribution overlay
+  async function drawAttribution(ctx, width, height) {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.fillRect(0, height - 30, width, 30);
+    ctx.font = '16px Arial';
+    ctx.fillStyle = 'white';
+    ctx.fillText(`📸 Image by ${creator} via ${source}`, 10, height - 10);
+  }
+
+  // 🚀 Upscale to 1920x1080
+  document.querySelector('.upscaleBtn').addEventListener('click', async () => {
+    const cropCanvas = cropper.getCroppedCanvas();
+    const upscaleCanvas = document.createElement('canvas');
+    upscaleCanvas.width = 1920;
+    upscaleCanvas.height = 1080;
+    const ctx = upscaleCanvas.getContext('2d');
+
+    await picaInstance.resize(cropCanvas, upscaleCanvas, {
+      quality: 3,
+      alpha: false
+    });
+
+    await drawAttribution(ctx, upscaleCanvas.width, upscaleCanvas.height);
+
+    previewImage.src = upscaleCanvas.toDataURL('image/jpeg', 0.95);
+    previewImage.style.display = 'block';
+    attributionLabel.style.display = 'none';
+    showDownload(previewImage.src);
+  });
+
+  // 📐 Custom resize
+  document.getElementById('processImageBtn').addEventListener('click', async () => {
+    const width = parseInt(document.getElementById('customWidth').value);
+    const height = parseInt(document.getElementById('customHeight').value);
+    if (!width || !height) return;
+
+    const cropCanvas = cropper.getCroppedCanvas();
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = width;
+    finalCanvas.height = height;
+    const ctx = finalCanvas.getContext('2d');
+
+    await picaInstance.resize(cropCanvas, finalCanvas, {
+      quality: 3,
+      alpha: false
+    });
+
+    await drawAttribution(ctx, width, height);
+
+    previewImage.src = finalCanvas.toDataURL('image/jpeg', 0.95);
+    previewImage.style.display = 'block';
+    attributionLabel.style.display = 'none';
+    showDownload(previewImage.src);
+  });
+
+  // 🖼️ Show download button
+  function showDownload(dataUrl) {
+    const downloadBtn = document.getElementById('downloadBtn');
+    downloadBtn.style.display = 'inline-block';
+    downloadBtn.onclick = () => {
+      const link = document.createElement('a');
+      link.download = 'edited-image.jpg';
+      link.href = dataUrl;
+      link.click();
     };
-
-    async function drawAttribution(ctx, width, height) {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-      ctx.fillRect(0, height - 30, width, 30);
-      ctx.font = '16px Arial';
-      ctx.fillStyle = 'white';
-      ctx.fillText(`📸 Image by ${creator} via ${source}`, 10, height - 10);
-    }
-
-    document.querySelector('.upscaleBtn').addEventListener('click', async () => {
-      const cropCanvas = cropper.getCroppedCanvas();
-      const upscaleCanvas = document.createElement('canvas');
-      upscaleCanvas.width = 1920;
-      upscaleCanvas.height = 1080;
-      const ctx = upscaleCanvas.getContext('2d');
-      await picaInstance.resize(cropCanvas, upscaleCanvas);
-      await drawAttribution(ctx, upscaleCanvas.width, upscaleCanvas.height);
-      previewImage.src = upscaleCanvas.toDataURL();
-      previewImage.style.display = 'block';
-      attributionLabel.style.display = 'none';
-      showDownload(previewImage.src);
-    });
-
-    document.getElementById('processImageBtn').addEventListener('click', async () => {
-      const width = parseInt(document.getElementById('customWidth').value);
-      const height = parseInt(document.getElementById('customHeight').value);
-      if (!width || !height) return;
-
-      const cropCanvas = cropper.getCroppedCanvas();
-      const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = width;
-      finalCanvas.height = height;
-      const ctx = finalCanvas.getContext('2d');
-      await picaInstance.resize(cropCanvas, finalCanvas);
-      await drawAttribution(ctx, width, height);
-      previewImage.src = finalCanvas.toDataURL();
-      previewImage.style.display = 'block';
-      attributionLabel.style.display = 'none';
-      showDownload(previewImage.src);
-    });
-
-    function showDownload(dataUrl) {
-      const downloadBtn = document.getElementById('downloadBtn');
-      downloadBtn.style.display = 'inline-block';
-      downloadBtn.onclick = () => {
-        const link = document.createElement('a');
-        link.download = 'edited-image.png';
-        link.href = dataUrl;
-        link.click();
-      };
-    }
-  </script>
+  }
+</script>
 </body>
 </html>
 
