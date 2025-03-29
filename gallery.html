@@ -26,8 +26,8 @@
       document.getElementById("galleryTitle").textContent = `API Main Keyword Images: ${keyword}`;
       document.getElementById("pageTitle").textContent = `API Images - ${keyword}`;
 
-      const pixabayAPI = `https://pixabay-gpt.onrender.com/fetch_pixabay_images?query=${keyword}`;
-      const unsplashAPI = `https://unsplash-gpt.onrender.com/fetch_unsplash_images?query=${keyword}`;
+      const pixabayAPI = `https://pixabay-gpt-mf8a.onrender.com/fetch_pixabay_images?query=${keyword}`;
+      const unsplashAPI = `https://unsplash-gpt-du0c.onrender.com/fetch_unsplash_images?query=${keyword}`;
 
       try {
         const [pixabayResponse, unsplashResponse] = await Promise.all([
