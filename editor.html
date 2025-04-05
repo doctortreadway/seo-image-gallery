@@ -27,17 +27,18 @@
     }
 
     .editor-container {
-      max-width: 90vw;
-      max-height: 80vh;
-      overflow: hidden;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border: 1px solid #ccc;
-      background: #f9f9f9;
-      border-radius: 8px;
-      padding: 10px;
-      margin-bottom: 20px;
+        max-width: 90vw;
+        max-height: 80vh;
+        overflow: hidden; /* changed from auto */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid #ccc;
+        background: #f9f9f9;
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 20px;
+        box-sizing: border-box; /* ensures padding doesn’t cause overflow */
     }
 
     .editor-container img {
