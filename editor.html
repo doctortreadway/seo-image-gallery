@@ -9,104 +9,119 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <script src="https://unpkg.com/pica@8.0.0/dist/pica.min.js"></script>
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-    }
+ <style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 
-    .outer-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      padding: 20px;
-    }
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #fff;
+  }
 
-    .editor-container {
-        max-width: 90vw;
-        max-height: 80vh;
-        overflow: hidden; /* changed from auto */
-        display: inline-block;
-        justify-content: center;
-        align-items: center;
-        border: 1px solid #ccc;
-        background: #ffffff;
-        border-radius: 6px;
-        padding: 8px;
-        margin-bottom: 15px;
-        box-sizing: border-box; /* ensures padding doesn’t cause overflow */
-          
-    }
+  .outer-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+    background-color: #fff;
+  }
 
-    .editor-container img {
-      max-width: 100%;
-      max-height: 100%;
-      width: auto;
-      height: auto;
-      object-fit: contain;
-      display: block;
-      background-color: #fff;
-      
-    }
+  .top-preview-image {
+    max-width: 500px;
+    width: 100%;
+    height: auto;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: white;
+    display: block;
+    margin: 10px auto;
+  }
 
-    .btn-container {
-      margin: 10px 0;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-    }
+  .editor-container {
+    max-width: 90vw;
+    max-height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    border: 1px solid #ccc;
+    background-color: #ffffff;
+    border-radius: 6px;
+    padding: 8px;
+    margin-bottom: 15px;
+  }
 
-    button, input[type="number"] {
-      padding: 10px 15px;
-      font-size: 16px;
-      cursor: pointer;
-    }
+  .editor-container img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    background-color: #fff;
+  }
 
-    .preview-wrapper {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      margin-top: 40px;
-      border-top: 1px solid #eee;
-      padding-top: 20px;
-    }
+  .btn-container {
+    margin: 10px 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
 
-    .preview-container {
-      padding: 20px;
-      border: 2px dashed #ccc;
-      background-color: #f9f9f9;
-      max-width: 1000px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-      border-radius: 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+  button,
+  input[type="number"] {
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+  }
 
-    .preview-container h2 {
-      margin-bottom: 10px;
-      font-size: 18px;
-      color: #333;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      text-align: center;
-    }
+  .preview-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+  }
 
-    .preview-container img {
-      max-width: 100%;
-      height: auto;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      background-color: white;
-      display: block;
-      margin: 0 auto;
-    }
-  </style>
+  .preview-container {
+    padding: 20px;
+    border: 2px dashed #ccc;
+    background-color: #f9f9f9;
+    max-width: 1000px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .preview-container h2 {
+    margin-bottom: 10px;
+    font-size: 18px;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+  }
+
+  .preview-container img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: white;
+    display: block;
+    margin: 0 auto;
+  }
+</style>
 </head>
 <body>
   <div class="outer-wrapper">
